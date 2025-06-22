@@ -26,7 +26,6 @@
         .shape-2 { width: 300px; height: 300px; background: linear-gradient(45deg, #f09819, #edde5d); animation: moveShape 30s infinite alternate-reverse; animation-delay: -5s; }
         @keyframes moveShape { from { transform: translate(10vw, -15vh) rotate(0deg); } to { transform: translate(80vw, 70vh) rotate(360deg); } }
         
-        /* --- Main Chat Window --- */
         #chat-window {
             width: 800px; max-width: 95vw; height: 90vh; display: flex; flex-direction: column;
             overflow: hidden; border-radius: 20px; background: rgba(255, 255, 255, 0.1);
@@ -39,7 +38,6 @@
             flex-shrink: 0;
         }
         
-        /* --- Messages & Code Blocks --- */
         #message-container { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
         .animated { animation: fadeInUp 0.5s ease-out forwards; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -47,16 +45,47 @@
         .bot-message { background: rgba(255, 255, 255, 0.2); color: #f0f0f0; align-self: flex-start; border-bottom-left-radius: 4px; }
         .user-message { background: var(--primary-color); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
         .info-message { background: rgba(80, 80, 90, 0.5); color: #d1d1d1; align-self: center; border-radius: 12px; font-size: 0.9em; font-style: italic; }
-        .code-block { background: var(--code-bg); font-family: 'Fira Code', 'Courier New', monospace; padding: 15px; border-radius: 8px; overflow-x: auto; max-width: 100%; align-self: flex-start; width: 95%; font-size: 0.9em; border: 1px solid rgba(255, 255, 255, 0.1); }
+
+        /* --- MODIFIED --- Optimized Code Block Styling */
+        .code-block {
+            background: var(--code-bg);
+            font-family: 'Fira Code', 'Courier New', monospace;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 100%;
+            align-self: flex-start;
+            width: 95%;
+            font-size: 0.9em;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            
+            /* --- THE FIX --- */
+            max-height: 400px;   /* Set a maximum height */
+            overflow: auto;      /* Add scrollbars for both X and Y axes if needed */
+        }
+        
+        /* --- NEW --- Custom Scrollbar for Code Blocks */
+        .code-block::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .code-block::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+        .code-block::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+        .code-block::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
         .token.comment { color: #6272a4; font-style: italic; } .token.string { color: #f1fa8c; } .token.keyword { color: #ff79c6; } .token.function { color: #50fa7b; } .token.number { color: #bd93f9; } .token.operator { color: #ff79c6; } .token.punctuation { color: #f8f8f2; } .token.tag { color: #ff79c6; } .token.attr-name { color: #50fa7b; }
         
-        /* --- Loading Indicator --- */
         .loading-indicator { align-self: flex-start; display: flex; align-items: center; gap: 8px; padding: 10px 15px; }
         .loading-indicator .dot { width: 8px; height: 8px; background-color: rgba(255,255,255,0.5); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
         .loading-indicator .dot:nth-child(1) { animation-delay: -0.32s; } .loading-indicator .dot:nth-child(2) { animation-delay: -0.16s; }
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
-
-        /* --- Input Area & Footer --- */
         .chat-input-area { display: flex; align-items: center; padding: 8px 12px; margin: 0 15px 15px 15px; background-color: var(--input-bg); border-radius: 30px; flex-shrink: 0; gap: 10px; border-top: none; }
         #chat-input { flex-grow: 1; background: none; border: none; outline: none; padding: 10px 0; font-size: 1rem; color: #f0f0f0; }
         #chat-input:disabled { color: #999; }
@@ -71,7 +100,6 @@
         .chat-footer { padding: 10px; text-align: center; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); background: rgba(0, 0, 0, 0.1); flex-shrink: 0; }
         .chat-footer p { margin: 0; }
 
-        /* --- API Key Modal Styles --- */
         #api-key-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
@@ -129,10 +157,7 @@
     </div>
 
     <script>
-        // --- CONFIGURATION ---
         const MODEL_NAME = 'gemini-1.5-flash-latest';
-
-        // --- DOM ELEMENTS ---
         const messageContainer = document.getElementById('message-container');
         const chatInput = document.getElementById('chat-input');
         const sendButton = document.getElementById('send-button');
@@ -141,12 +166,9 @@
         const apiKeyModal = document.getElementById('api-key-modal');
         const apiKeyInput = document.getElementById('api-key-input');
         const saveApiKeyButton = document.getElementById('save-api-key-button');
-
-        // --- STATE ---
         let conversationHistory = [];
-        let userApiKey = ''; // Key will be stored here from localStorage
+        let userApiKey = '';
 
-        // --- API KEY HANDLING (SECURE) ---
         function initializeApiKey() {
             const storedKey = localStorage.getItem('geminiApiKey');
             if (storedKey) {
@@ -168,7 +190,6 @@
             }
         });
 
-        // --- CORE CHAT FUNCTIONS ---
         async function handleSendMessage() {
             const userInput = chatInput.value.trim();
             if (!userInput || !userApiKey) return;
@@ -208,7 +229,6 @@
             return data;
         }
         
-        // --- UI & HELPER FUNCTIONS ---
         function displayEntry(text, sender) {
             if (!text) return;
             toggleLoadingIndicator(false);
@@ -297,20 +317,18 @@
             }
         }
         
-        // --- EVENT LISTENERS ---
         sendButton.addEventListener('click', handleSendMessage);
         chatInput.addEventListener('keydown', (event) => { if (event.key === 'Enter' && !sendButton.disabled) { event.preventDefault(); handleSendMessage(); }});
         addButton.addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
-            if (file) { displayEntry(`📎 File selected: ${file.name}`, 'info'); fileInput.value = ''; }
+            if (file) { displayEntry(`📎 File selected: ${file.name}`, 'info'); }
         });
         chatInput.addEventListener('input', () => {
             if (chatInput.disabled) return;
             sendButton.disabled = chatInput.value.trim().length === 0;
         });
         
-        // --- INITIALIZATION ---
         initializeApiKey();
     </script>
 </body>
