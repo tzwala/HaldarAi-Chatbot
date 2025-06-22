@@ -27,10 +27,11 @@
         @keyframes moveShape { from { transform: translate(10vw, -15vh) rotate(0deg); } to { transform: translate(80vw, 70vh) rotate(360deg); } }
         
         #chat-window {
-            width: 800px; max-width: 95vw; height: 90vh; display: flex; flex-direction: column;
+            width: 900px; max-width: 95vw; height: 90vh; display: flex; flex-direction: column;
             overflow: hidden; border-radius: 20px; background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.18); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
         }
         .chat-header {
             padding: 15px; font-size: 1.2rem; font-weight: bold; text-align: center;
@@ -46,42 +47,43 @@
         .user-message { background: var(--primary-color); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
         .info-message { background: rgba(80, 80, 90, 0.5); color: #d1d1d1; align-self: center; border-radius: 12px; font-size: 0.9em; font-style: italic; }
 
-        /* --- MODIFIED --- Optimized Code Block Styling */
-        .code-block {
-            background: var(--code-bg);
-            font-family: 'Fira Code', 'Courier New', monospace;
-            padding: 15px;
-            border-radius: 8px;
-            max-width: 100%;
+        /* --- OPTIMIZED --- Code Block and New Actions Styling */
+        .code-container {
+            display: flex;
+            flex-direction: column;
             align-self: flex-start;
             width: 95%;
-            font-size: 0.9em;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            
-            /* --- THE FIX --- */
-            max-height: 400px;   /* Set a maximum height */
-            overflow: auto;      /* Add scrollbars for both X and Y axes if needed */
+            max-width: 100%;
         }
-        
-        /* --- NEW --- Custom Scrollbar for Code Blocks */
-        .code-block::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+        .code-block {
+            background: var(--code-bg); font-family: 'Fira Code', 'Courier New', monospace; padding: 15px;
+            border-radius: 8px 8px 0 0; /* Rounded top corners only */
+            border: 1px solid rgba(255, 255, 255, 0.1); border-bottom: none;
+            max-height: 400px; overflow: auto; font-size: 0.9em;
         }
-        .code-block::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 4px;
+        .code-actions {
+            display: flex; gap: 10px; padding: 8px 12px;
+            background: #282a36; /* Darker background for actions */
+            border-radius: 0 0 8px 8px; /* Rounded bottom corners */
+            border: 1px solid rgba(255, 255, 255, 0.1); border-top: 1px solid rgba(255, 255, 255, 0.2);
+            justify-content: flex-end;
         }
-        .code-block::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 4px;
+        .code-actions button {
+            background: rgba(255, 255, 255, 0.1); border: none; color: #f0f0f0;
+            padding: 5px 10px; border-radius: 5px; cursor: pointer;
+            display: flex; align-items: center; gap: 5px; font-size: 0.8rem;
+            transition: background-color 0.2s;
         }
-        .code-block::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.5);
-        }
+        .code-actions button:hover { background: rgba(255, 255, 255, 0.2); }
+        .code-actions button svg { width: 14px; height: 14px; fill: currentColor; }
 
-        .token.comment { color: #6272a4; font-style: italic; } .token.string { color: #f1fa8c; } .token.keyword { color: #ff79c6; } .token.function { color: #50fa7b; } .token.number { color: #bd93f9; } .token.operator { color: #ff79c6; } .token.punctuation { color: #f8f8f2; } .token.tag { color: #ff79c6; } .token.attr-name { color: #50fa7b; }
+        /* Custom Scrollbar */
+        .code-block::-webkit-scrollbar, #message-container::-webkit-scrollbar { width: 8px; height: 8px; }
+        .code-block::-webkit-scrollbar-track, #message-container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 4px; }
+        .code-block::-webkit-scrollbar-thumb, #message-container::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 4px; }
+        .code-block::-webkit-scrollbar-thumb:hover, #message-container::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.5); }
         
+        /* ... Other styles remain the same ... */
         .loading-indicator { align-self: flex-start; display: flex; align-items: center; gap: 8px; padding: 10px 15px; }
         .loading-indicator .dot { width: 8px; height: 8px; background-color: rgba(255,255,255,0.5); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
         .loading-indicator .dot:nth-child(1) { animation-delay: -0.32s; } .loading-indicator .dot:nth-child(2) { animation-delay: -0.16s; }
@@ -100,32 +102,34 @@
         .chat-footer { padding: 10px; text-align: center; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); background: rgba(0, 0, 0, 0.1); flex-shrink: 0; }
         .chat-footer p { margin: 0; }
 
-        #api-key-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            display: none; justify-content: center; align-items: center; z-index: 1000;
-            color: #f0f0f0; font-family: var(--font-family);
-        }
-        .modal-content {
-            background: #343541; padding: 30px; border-radius: 15px; width: 90%;
-            max-width: 500px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-        }
+        /* API Key Modal */
+        #api-key-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); display: none; justify-content: center; align-items: center; z-index: 1000; color: #f0f0f0; font-family: var(--font-family); }
+        .modal-content { background: #343541; padding: 30px; border-radius: 15px; width: 90%; max-width: 500px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
         .modal-content h2 { margin-top: 0; }
         .modal-content p { color: #ccc; margin-bottom: 20px; }
-        #api-key-input {
-            width: 95%; padding: 12px; border-radius: 8px; border: 1px solid #555;
-            background: #2a2a2e; color: white; font-size: 1rem; margin-bottom: 20px;
-        }
-        #save-api-key-button {
-            width: 100%; padding: 12px; border-radius: 8px; border: none;
-            background: var(--primary-color); color: white; font-size: 1rem;
-            cursor: pointer; transition: background-color 0.2s;
-        }
+        #api-key-input { width: 95%; padding: 12px; border-radius: 8px; border: 1px solid #555; background: #2a2a2e; color: white; font-size: 1rem; margin-bottom: 20px; }
+        #save-api-key-button { width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--primary-color); color: white; font-size: 1rem; cursor: pointer; transition: background-color 0.2s; }
         #save-api-key-button:hover { background-color: #304ffe; }
+
+        /* --- OPTIMIZED --- Responsive Design for All Devices */
+        @media (max-width: 768px) {
+            #chat-window {
+                width: 100%;
+                height: 100vh;
+                max-height: 100vh;
+                border-radius: 0;
+                border: none;
+            }
+            .chat-input-area {
+                margin: 0 8px 8px 8px;
+            }
+            .chat-header, .chat-footer {
+                border-radius: 0;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Secure API Key Modal -->
     <div id="api-key-modal">
         <div class="modal-content">
             <h2>Enter API Key</h2>
@@ -134,8 +138,6 @@
             <button id="save-api-key-button">Save & Start Chatting</button>
         </div>
     </div>
-    
-    <!-- Background & Main App Structure -->
     <div class="background-shapes">
         <div class="shape shape-1"></div>
         <div class="shape shape-2"></div>
@@ -157,6 +159,7 @@
     </div>
 
     <script>
+        // --- All JavaScript is the same, with one modification in handleBotResponseDisplay ---
         const MODEL_NAME = 'gemini-1.5-flash-latest';
         const messageContainer = document.getElementById('message-container');
         const chatInput = document.getElementById('chat-input');
@@ -242,10 +245,12 @@
             scrollToBottom();
         }
 
+        // --- MODIFIED --- This function now creates the Copy/Download buttons
         function handleBotResponseDisplay(text) {
             const codeBlockRegex = /```(\w+)?\n([\s\S]+?)\n```/g;
             let lastIndex = 0;
             for (const match of text.matchAll(codeBlockRegex)) {
+                // Add any preceding text
                 const precedingText = text.substring(lastIndex, match.index).trim();
                 if (precedingText) {
                     const div = document.createElement('div');
@@ -253,16 +258,62 @@
                     div.textContent = precedingText;
                     messageContainer.appendChild(div);
                 }
+
+                // Create the full code container
                 const lang = match[1] || 'plaintext';
                 const codePart = match[2].trim();
+                const codeContainer = document.createElement('div');
+                codeContainer.className = 'code-container animated';
+
+                // Create the <pre> block
                 const pre = document.createElement('pre');
-                pre.classList.add('code-block', 'animated');
+                pre.classList.add('code-block');
                 const codeEl = document.createElement('code');
                 codeEl.innerHTML = highlightSyntax(codePart, lang);
                 pre.appendChild(codeEl);
-                messageContainer.appendChild(pre);
+                codeContainer.appendChild(pre);
+                
+                // Create the actions bar
+                const actions = document.createElement('div');
+                actions.className = 'code-actions';
+                
+                // Create Copy Button
+                const copyButton = document.createElement('button');
+                copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path></svg> Copy`;
+                copyButton.onclick = () => {
+                    navigator.clipboard.writeText(codePart).then(() => {
+                        copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path></svg> Copied!`;
+                        setTimeout(() => {
+                            copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path></svg> Copy`;
+                        }, 2000);
+                    });
+                };
+                actions.appendChild(copyButton);
+
+                // Create Download Button
+                const downloadButton = document.createElement('button');
+                downloadButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"></path></svg> Download`;
+                downloadButton.onclick = () => {
+                    const langExtensionMap = { 'python': 'py', 'javascript': 'js', 'html': 'html', 'css': 'css', 'jsx': 'jsx', 'typescript': 'ts' };
+                    const extension = langExtensionMap[lang] || 'txt';
+                    const blob = new Blob([codePart], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `haldarai-snippet.${extension}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                };
+                actions.appendChild(downloadButton);
+
+                codeContainer.appendChild(actions);
+                messageContainer.appendChild(codeContainer);
                 lastIndex = match.index + match[0].length;
             }
+
+            // Add any remaining text
             const remainingText = text.substring(lastIndex).trim();
             if (remainingText) {
                 const div = document.createElement('div');
