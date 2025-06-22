@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HaldarAi 💡 Code Generator</title>
+    
+    <style>
+        /* --- General Styling & Animated Background --- */
+        :root {
+            --primary-color: #3d5af1;
+            --code-bg: rgba(40, 42, 54, 0.85);
+            --font-family: 'Segoe UI', 'Roboto', sans-serif;
+            --input-bg: #343541;
+            --input-send-button-bg: #4a4b52;
+            --input-icon-color: #c5c5d2;
+            --input-placeholder-color: #8e8e8e;
+        }
+        body {
+            font-family: var(--font-family); margin: 0; background: #121225; color: #f0f0f0;
+            display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden;
+        }
+        .background-shapes { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        .shape { position: absolute; border-radius: 50%; filter: blur(80px); }
+        .shape-1 { width: 400px; height: 400px; background: linear-gradient(45deg, #ff00ff, #00ffff); animation: moveShape 25s infinite alternate; }
+        .shape-2 { width: 300px; height: 300px; background: linear-gradient(45deg, #f09819, #edde5d); animation: moveShape 30s infinite alternate-reverse; animation-delay: -5s; }
+        @keyframes moveShape { from { transform: translate(10vw, -15vh) rotate(0deg); } to { transform: translate(80vw, 70vh) rotate(360deg); } }
+        
+        /* --- Main Chat Window --- */
+        #chat-window {
+            width: 800px; max-width: 95vw; height: 90vh; display: flex; flex-direction: column;
+            overflow: hidden; border-radius: 20px; background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.18); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        .chat-header {
+            padding: 15px; font-size: 1.2rem; font-weight: bold; text-align: center;
+            background: rgba(255, 255, 255, 0.15); border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+        
+        /* --- Messages & Code Blocks --- */
+        #message-container { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .animated { animation: fadeInUp 0.5s ease-out forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .message { padding: 12px 18px; border-radius: 18px; max-width: 90%; line-height: 1.5; word-wrap: break-word; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .bot-message { background: rgba(255, 255, 255, 0.2); color: #f0f0f0; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .user-message { background: var(--primary-color); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .info-message { background: rgba(80, 80, 90, 0.5); color: #d1d1d1; align-self: center; border-radius: 12px; font-size: 0.9em; font-style: italic; }
+        .code-block { background: var(--code-bg); font-family: 'Fira Code', 'Courier New', monospace; padding: 15px; border-radius: 8px; overflow-x: auto; max-width: 100%; align-self: flex-start; width: 95%; font-size: 0.9em; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .token.comment { color: #6272a4; font-style: italic; } .token.string { color: #f1fa8c; } .token.keyword { color: #ff79c6; } .token.function { color: #50fa7b; } .token.number { color: #bd93f9; } .token.operator { color: #ff79c6; } .token.punctuation { color: #f8f8f2; } .token.tag { color: #ff79c6; } .token.attr-name { color: #50fa7b; }
+        
+        /* --- Loading Indicator --- */
+        .loading-indicator { align-self: flex-start; display: flex; align-items: center; gap: 8px; padding: 10px 15px; }
+        .loading-indicator .dot { width: 8px; height: 8px; background-color: rgba(255,255,255,0.5); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
+        .loading-indicator .dot:nth-child(1) { animation-delay: -0.32s; } .loading-indicator .dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
+
+        /* --- Input Area & Footer --- */
+        .chat-input-area { display: flex; align-items: center; padding: 8px 12px; margin: 0 15px 15px 15px; background-color: var(--input-bg); border-radius: 30px; flex-shrink: 0; gap: 10px; border-top: none; }
+        #chat-input { flex-grow: 1; background: none; border: none; outline: none; padding: 10px 0; font-size: 1rem; color: #f0f0f0; }
+        #chat-input:disabled { color: #999; }
+        #chat-input::placeholder { color: var(--input-placeholder-color); }
+        #add-button, #send-button { background: none; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; transition: background-color 0.2s, opacity 0.2s; flex-shrink: 0; }
+        #add-button svg { width: 24px; height: 24px; stroke: var(--input-icon-color); }
+        #send-button { background-color: var(--input-send-button-bg); }
+        #send-button svg { width: 22px; height: 22px; fill: var(--input-icon-color); }
+        #add-button:hover:not(:disabled) { background-color: rgba(255, 255, 255, 0.1); }
+        #send-button:hover:not(:disabled) { background-color: #64656f; }
+        #send-button:disabled, #add-button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .chat-footer { padding: 10px; text-align: center; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); background: rgba(0, 0, 0, 0.1); flex-shrink: 0; }
+        .chat-footer p { margin: 0; }
+
+        /* --- API Key Modal Styles --- */
+        #api-key-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+            color: #f0f0f0; font-family: var(--font-family);
+        }
+        .modal-content {
+            background: #343541; padding: 30px; border-radius: 15px; width: 90%;
+            max-width: 500px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        .modal-content h2 { margin-top: 0; }
+        .modal-content p { color: #ccc; margin-bottom: 20px; }
+        #api-key-input {
+            width: 95%; padding: 12px; border-radius: 8px; border: 1px solid #555;
+            background: #2a2a2e; color: white; font-size: 1rem; margin-bottom: 20px;
+        }
+        #save-api-key-button {
+            width: 100%; padding: 12px; border-radius: 8px; border: none;
+            background: var(--primary-color); color: white; font-size: 1rem;
+            cursor: pointer; transition: background-color 0.2s;
+        }
+        #save-api-key-button:hover { background-color: #304ffe; }
+    </style>
+</head>
+<body>
+    <!-- Secure API Key Modal -->
+    <div id="api-key-modal">
+        <div class="modal-content">
+            <h2>Enter API Key</h2>
+            <p>To use this AI assistant, please enter your Google Gemini API key. It will be saved securely in your browser's local storage and never shared.</p>
+            <input type="password" id="api-key-input" placeholder="Paste your API key here">
+            <button id="save-api-key-button">Save & Start Chatting</button>
+        </div>
+    </div>
+    
+    <!-- Background & Main App Structure -->
+    <div class="background-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+    </div>
+    <input type="file" id="file-input" style="display: none;">
+    <div id="chat-window">
+        <div class="chat-header">HaldarAi 💡 Code Assistant</div>
+        <div id="message-container"></div>
+        <div class="chat-input-area">
+            <button id="add-button" aria-label="Add File">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+            </button>
+            <input type="text" id="chat-input" placeholder="e.g., Python function for bubble sort" autocomplete="off">
+            <button id="send-button" aria-label="Send Message" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z" transform="rotate(-90 12 12)"/></svg>
+            </button>
+        </div>
+        <div class="chat-footer"><p>Made with ❤️ by Haldar</p></div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const MODEL_NAME = 'gemini-1.5-flash-latest';
+
+        // --- DOM ELEMENTS ---
+        const messageContainer = document.getElementById('message-container');
+        const chatInput = document.getElementById('chat-input');
+        const sendButton = document.getElementById('send-button');
+        const addButton = document.getElementById('add-button');
+        const fileInput = document.getElementById('file-input');
+        const apiKeyModal = document.getElementById('api-key-modal');
+        const apiKeyInput = document.getElementById('api-key-input');
+        const saveApiKeyButton = document.getElementById('save-api-key-button');
+
+        // --- STATE ---
+        let conversationHistory = [];
+        let userApiKey = ''; // Key will be stored here from localStorage
+
+        // --- API KEY HANDLING (SECURE) ---
+        function initializeApiKey() {
+            const storedKey = localStorage.getItem('geminiApiKey');
+            if (storedKey) {
+                userApiKey = storedKey;
+                apiKeyModal.style.display = 'none';
+                displayEntry("Welcome back! Your API key is loaded. Ask me to write some code.", 'info');
+            } else {
+                apiKeyModal.style.display = 'flex';
+            }
+        }
+
+        saveApiKeyButton.addEventListener('click', () => {
+            const key = apiKeyInput.value.trim();
+            if (key) {
+                localStorage.setItem('geminiApiKey', key);
+                userApiKey = key;
+                apiKeyModal.style.display = 'none';
+                displayEntry("API Key saved! Welcome to HaldarAi 💡. Ask me to write some code!", 'bot');
+            }
+        });
+
+        // --- CORE CHAT FUNCTIONS ---
+        async function handleSendMessage() {
+            const userInput = chatInput.value.trim();
+            if (!userInput || !userApiKey) return;
+            displayEntry(userInput, 'user');
+            setInputState(true);
+            conversationHistory.push({ role: 'user', parts: [{ text: userInput }] });
+            toggleLoadingIndicator(true);
+            try {
+                const botResponse = await getBotResponse();
+                const fullResponseText = botResponse.candidates[0].content.parts.map(part => part.text).join("");
+                conversationHistory.push({ role: 'model', parts: [{ text: fullResponseText }] });
+                displayEntry(fullResponseText, 'bot');
+            } catch (error) {
+                console.error("Error details:", error);
+                displayEntry(`An error occurred. Please check the browser console.\n\nCommon issues:\n- Invalid API Key.\n- Google Cloud project has not enabled the Gemini API.\n- Billing is not enabled on the account.`, 'bot');
+            } finally {
+                setInputState(false);
+            }
+        }
+        
+        async function getBotResponse() {
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
+            const systemInstruction = {
+                parts: [{ text: "You are a helpful and expert AI programming assistant named HaldarAi 💡. Provide a brief, one-sentence explanation of the code's purpose. Generate clean, efficient, and well-commented code. You MUST provide the code enclosed in a markdown-style code block with the language specified, like ```python\n...\n```." }]
+            };
+            const requestBody = { systemInstruction, contents: conversationHistory, generationConfig: { temperature: 0.4, maxOutputTokens: 4096 }, safetySettings: [{ category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" }] };
+            const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(`API Error: ${err.error.message || JSON.stringify(err)}`);
+            }
+            const data = await response.json();
+            if (!data.candidates?.[0]?.content?.parts) {
+                if (data.promptFeedback?.blockReason) throw new Error(`Request blocked by safety settings: ${data.promptFeedback.blockReason}`);
+                throw new Error("API returned a valid response but with no content.");
+            }
+            return data;
+        }
+        
+        // --- UI & HELPER FUNCTIONS ---
+        function displayEntry(text, sender) {
+            if (!text) return;
+            toggleLoadingIndicator(false);
+            if (sender === 'bot') { handleBotResponseDisplay(text); return; }
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', 'animated');
+            messageDiv.textContent = text;
+            if (sender === 'user') messageDiv.classList.add('user-message');
+            if (sender === 'info') messageDiv.classList.add('info-message');
+            messageContainer.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function handleBotResponseDisplay(text) {
+            const codeBlockRegex = /```(\w+)?\n([\s\S]+?)\n```/g;
+            let lastIndex = 0;
+            for (const match of text.matchAll(codeBlockRegex)) {
+                const precedingText = text.substring(lastIndex, match.index).trim();
+                if (precedingText) {
+                    const div = document.createElement('div');
+                    div.classList.add('message', 'bot-message', 'animated');
+                    div.textContent = precedingText;
+                    messageContainer.appendChild(div);
+                }
+                const lang = match[1] || 'plaintext';
+                const codePart = match[2].trim();
+                const pre = document.createElement('pre');
+                pre.classList.add('code-block', 'animated');
+                const codeEl = document.createElement('code');
+                codeEl.innerHTML = highlightSyntax(codePart, lang);
+                pre.appendChild(codeEl);
+                messageContainer.appendChild(pre);
+                lastIndex = match.index + match[0].length;
+            }
+            const remainingText = text.substring(lastIndex).trim();
+            if (remainingText) {
+                const div = document.createElement('div');
+                div.classList.add('message', 'bot-message', 'animated');
+                div.textContent = remainingText;
+                messageContainer.appendChild(div);
+            }
+            scrollToBottom();
+        }
+        
+        function setInputState(disabled) {
+            chatInput.disabled = disabled;
+            sendButton.disabled = disabled;
+            addButton.disabled = disabled;
+            if (disabled) {
+                chatInput.value = '';
+                sendButton.disabled = true;
+            } else {
+                sendButton.disabled = chatInput.value.trim().length === 0;
+                chatInput.focus();
+            }
+        }
+
+        function highlightSyntax(code, lang) {
+            let highlightedCode = code.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>');
+            const jsKeywords = 'const|let|var|function|return|if|else|for|while|import|export|from|async|await|class|new|this|true|false|null|undefined';
+            const pyKeywords = 'def|return|if|else|elif|for|while|import|from|class|True|False|None|and|or|not|in|is|lambda|with|as|try|except|finally';
+            let keywords = '';
+            if (['javascript', 'js', 'jsx', 'react'].includes(lang)) keywords = jsKeywords;
+            if (['python', 'py'].includes(lang)) keywords = pyKeywords;
+            highlightedCode = highlightedCode.replace(/(\/\/.*|\#.*)/g, '<span class="token comment">$1</span>').replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="token comment">$1</span>').replace(/(".*?"|'.*?'|`.*?`)/g, '<span class="token string">$1</span>');
+            if (keywords) { const regex = new RegExp(`\\b(${keywords})\\b`, 'g'); highlightedCode = highlightedCode.replace(regex, '<span class="token keyword">$1</span>'); }
+            highlightedCode = highlightedCode.replace(/(\b(function|def)\s+)(\w+)/g, '$1<span class="token function">$3</span>').replace(/\b(\d+(\.\d+)?)\b/g, '<span class="token number">$1</span>');
+            if (['html', 'xml', 'jsx', 'react'].includes(lang)) { highlightedCode = highlightedCode.replace(/(<\/?)([\w-]+)/g, '$1<span class="token tag">$2</span>').replace(/(\s+)([\w-]+)(?==)/g, '$1<span class="token attr-name">$2</span>'); }
+            return highlightedCode;
+        }
+        
+        function scrollToBottom() { messageContainer.scrollTop = messageContainer.scrollHeight; }
+        
+        function toggleLoadingIndicator(show) {
+            let indicator = document.querySelector('.loading-indicator');
+            if (show) {
+                if (!indicator) {
+                    indicator = document.createElement('div');
+                    indicator.classList.add('loading-indicator', 'animated');
+                    indicator.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+                    messageContainer.appendChild(indicator);
+                    scrollToBottom();
+                }
+            } else if (indicator) {
+                indicator.remove();
+            }
+        }
+        
+        // --- EVENT LISTENERS ---
+        sendButton.addEventListener('click', handleSendMessage);
+        chatInput.addEventListener('keydown', (event) => { if (event.key === 'Enter' && !sendButton.disabled) { event.preventDefault(); handleSendMessage(); }});
+        addButton.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) { displayEntry(`📎 File selected: ${file.name}`, 'info'); fileInput.value = ''; }
+        });
+        chatInput.addEventListener('input', () => {
+            if (chatInput.disabled) return;
+            sendButton.disabled = chatInput.value.trim().length === 0;
+        });
+        
+        // --- INITIALIZATION ---
+        initializeApiKey();
+    </script>
+</body>
+</html>
