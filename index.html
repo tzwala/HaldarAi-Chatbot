@@ -65,8 +65,18 @@
         .bot-message { background: rgba(255, 255, 255, 0.2); color: #f0f0f0; align-self: flex-start; border-bottom-left-radius: 4px; }
         .user-message { background: var(--primary-color); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
         .info-message { align-self: center; background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); font-size: 0.85rem; max-width: 70%; display: flex; align-items: center; }
-        .code-block { background: var(--code-bg); font-family: 'Fira Code', 'Courier New', monospace; padding: 15px; border-radius: 8px; overflow-x: auto; max-width: 100%; align-self: flex-start; width: 95%; font-size: 0.9em; border: 1px solid rgba(255, 255, 255, 0.1); }
+
+        /* --- NEW & MODIFIED STYLES FOR CODE BLOCKS --- */
+        .code-block-wrapper { position: relative; background: var(--code-bg); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); align-self: flex-start; width: 95%; max-width: 100%; margin-top: 10px; margin-bottom: 10px; }
+        .code-block-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .language-label { font-size: 0.8rem; color: #bd93f9; text-transform: uppercase; }
+        .code-actions { display: flex; gap: 8px; }
+        .code-action-button { background: rgba(255,255,255,0.1); border: none; color: #f0f0f0; padding: 4px 8px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 0.8rem; transition: background 0.2s; }
+        .code-action-button:hover { background: rgba(255,255,255,0.2); }
+        .code-action-button svg { width: 14px; height: 14px; fill: currentColor; }
+        .code-block { font-family: 'Fira Code', 'Courier New', monospace; padding: 15px; margin: 0; overflow-x: auto; font-size: 0.9em; }
         .token.comment { color: #6272a4; font-style: italic; } .token.string { color: #f1fa8c; } .token.keyword { color: #ff79c6; } .token.function { color: #50fa7b; } .token.number { color: #bd93f9; } .token.operator { color: #ff79c6; } .token.punctuation { color: #f8f8f2; } .token.tag { color: #ff79c6; } .token.attr-name { color: #50fa7b; }
+        
         .loading-indicator { align-self: flex-start; display: flex; align-items: center; gap: 8px; padding: 10px 15px; }
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
         .loading-indicator .dot { width: 8px; height: 8px; background-color: rgba(255,255,255,0.5); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
@@ -139,7 +149,111 @@
         async function handleSendMessage() { if (!apiKey) { alert("API Key not set."); return; } const userInput = DOMElements.chatInput.value.trim(); if (!userInput && !attachedFile) return; if (attachedFile) { attachedFile = null; } if (userInput) { displayEntry(userInput, 'user'); conversationHistory.push({ role: 'user', parts: [{ text: userInput }] }); saveOrUpdateChat(); } DOMElements.chatInput.value = ''; toggleLoadingIndicator(true); try { if (conversationHistory.length === 0) { throw new Error("Cannot send empty message to API."); } const botResponse = await getBotResponse(); const fullResponseText = botResponse.candidates[0].content.parts.map(part => part.text).join(""); conversationHistory.push({ role: 'model', parts: [{ text: fullResponseText }] }); saveOrUpdateChat(); displayEntry(fullResponseText, 'bot'); } catch (error) { console.error("Error getting bot response:", error); const errorMessage = error.message.includes("API Error:") ? "Sorry, API error. Check your key and API settings." : "Sorry, an error occurred. See console."; displayEntry(errorMessage, 'bot'); } finally { toggleLoadingIndicator(false); } }
         function handleFileSelect(event) { const file = event.target.files[0]; if (file) { attachedFile = file; displayFileInfo(file.name); } event.target.value = null; }
         function displayFileInfo(fileName) { const existingInfo = document.querySelector('.info-message'); if (existingInfo) existingInfo.remove(); const infoDiv = document.createElement('div'); infoDiv.classList.add('message', 'info-message'); infoDiv.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" height="20px" width="20px" viewBox="0 0 24 24" style="margin-right: 8px;"><path d="M16.5,6V17.5A4,4 0 0,1 12.5,21.5A4,4 0 0,1 8.5,17.5V5A2.5,2.5 0 0,1 11,2.5A2.5,2.5 0 0,1 13.5,5V15.5A1,1 0 0,1 12.5,16.5A1,1 0 0,1 11.5,15.5V6H10V15.5A2.5,2.5 0 0,0 12.5,18A2.5,2.5 0 0,0 15,15.5V5A4,4 0 0,0 11,1A4,4 0 0,0 7,5V17.5A5.5,5.5 0 0,0 12.5,23A5.5,5.5 0 0,0 18,17.5V6H16.5Z" /></svg><span>File attached: <strong>${fileName}</strong></span>`; DOMElements.messageContainer.appendChild(infoDiv); scrollToBottom(); }
-        function displayEntry(text, sender, isInitialLoad = false) { if (!text && sender === 'user') return; const loadingIndicator = document.querySelector('.loading-indicator'); if(loadingIndicator) loadingIndicator.remove(); if (sender === 'user') { const messageDiv = document.createElement('div'); messageDiv.classList.add('message', 'user-message'); messageDiv.textContent = text; DOMElements.messageContainer.appendChild(messageDiv); } else { const codeBlockRegex = /```(\w+)?\n([\s\S]+?)\n```/g; let lastIndex = 0; for (const match of text.matchAll(codeBlockRegex)) { const precedingText = text.substring(lastIndex, match.index).trim(); if (precedingText) { const messageDiv = document.createElement('div'); messageDiv.classList.add('message', 'bot-message'); messageDiv.textContent = precedingText; DOMElements.messageContainer.appendChild(messageDiv); } const lang = match[1] || 'plaintext'; const codePart = match[2].trim(); const pre = document.createElement('pre'); pre.classList.add('code-block'); const codeEl = document.createElement('code'); codeEl.innerHTML = highlightSyntax(codePart, lang); pre.appendChild(codeEl); DOMElements.messageContainer.appendChild(pre); lastIndex = match.index + match[0].length; } const remainingText = text.substring(lastIndex).trim(); if(remainingText) { const messageDiv = document.createElement('div'); messageDiv.classList.add('message', 'bot-message'); messageDiv.textContent = remainingText; DOMElements.messageContainer.appendChild(messageDiv); } } if (!isInitialLoad) scrollToBottom(); }
+        
+        // --- MODIFIED displayEntry FUNCTION ---
+        function displayEntry(text, sender, isInitialLoad = false) {
+            if (!text && sender === 'user') return;
+            const loadingIndicator = document.querySelector('.loading-indicator');
+            if (loadingIndicator) loadingIndicator.remove();
+
+            if (sender === 'user') {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message', 'user-message');
+                messageDiv.textContent = text;
+                DOMElements.messageContainer.appendChild(messageDiv);
+            } else {
+                const codeBlockRegex = /```(\w+)?\n([\s\S]+?)\n```/g;
+                let lastIndex = 0;
+
+                for (const match of text.matchAll(codeBlockRegex)) {
+                    // 1. Render text before the code block
+                    const precedingText = text.substring(lastIndex, match.index).trim();
+                    if (precedingText) {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.classList.add('message', 'bot-message');
+                        messageDiv.textContent = precedingText;
+                        DOMElements.messageContainer.appendChild(messageDiv);
+                    }
+
+                    const lang = match[1] || 'plaintext';
+                    const codePart = match[2].trim();
+                    
+                    // 2. Create the main wrapper for the code block
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'code-block-wrapper';
+                    
+                    // 3. Create the header with language and buttons
+                    const header = document.createElement('div');
+                    header.className = 'code-block-header';
+                    
+                    const langLabel = document.createElement('span');
+                    langLabel.className = 'language-label';
+                    langLabel.textContent = lang;
+                    
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.className = 'code-actions';
+                    
+                    // Copy Button
+                    const copyButton = document.createElement('button');
+                    copyButton.className = 'code-action-button';
+                    copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg> Copy`;
+                    copyButton.addEventListener('click', (e) => {
+                        navigator.clipboard.writeText(codePart).then(() => {
+                            copyButton.textContent = 'Copied!';
+                            setTimeout(() => {
+                                copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg> Copy`;
+                            }, 2000);
+                        });
+                    });
+
+                    // Download Button
+                    const downloadButton = document.createElement('button');
+                    downloadButton.className = 'code-action-button';
+                    downloadButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z"/></svg> Download`;
+                    downloadButton.addEventListener('click', () => {
+                        const fileExtension = { 'javascript': 'js', 'python': 'py', 'html': 'html', 'css': 'css', 'java': 'java', 'csharp': 'cs', 'cpp': 'cpp' }[lang] || 'txt';
+                        const blob = new Blob([codePart], { type: 'text/plain' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `haldarai-code.${fileExtension}`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    });
+                    
+                    actionsDiv.appendChild(copyButton);
+                    actionsDiv.appendChild(downloadButton);
+                    header.appendChild(langLabel);
+                    header.appendChild(actionsDiv);
+                    
+                    // 4. Create the code element itself
+                    const pre = document.createElement('pre');
+                    pre.classList.add('code-block');
+                    const codeEl = document.createElement('code');
+                    codeEl.innerHTML = highlightSyntax(codePart, lang);
+                    pre.appendChild(codeEl);
+                    
+                    // 5. Assemble and append to message container
+                    wrapper.appendChild(header);
+                    wrapper.appendChild(pre);
+                    DOMElements.messageContainer.appendChild(wrapper);
+                    
+                    lastIndex = match.index + match[0].length;
+                }
+                
+                // 6. Render any text that comes after the last code block
+                const remainingText = text.substring(lastIndex).trim();
+                if(remainingText) {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.classList.add('message', 'bot-message');
+                    messageDiv.textContent = remainingText;
+                    DOMElements.messageContainer.appendChild(messageDiv);
+                }
+            }
+            if (!isInitialLoad) scrollToBottom();
+        }
         
         function loadChatsFromStorage() { try { const storedChats = localStorage.getItem(CHAT_HISTORY_STORAGE_KEY); allChats = storedChats ? JSON.parse(storedChats) : []; } catch (e) { allChats = []; } }
         function saveChatsToStorage() { try { localStorage.setItem(CHAT_HISTORY_STORAGE_KEY, JSON.stringify(allChats)); } catch (e) { console.error("Could not save chat history:", e); } }
