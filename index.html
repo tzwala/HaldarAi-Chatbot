@@ -9,7 +9,6 @@
         body { font-family: var(--font-family); margin: 0; background: #121225; color: #f0f0f0; height: 100vh; overflow: hidden; }
         .hidden { display: none !important; }
         
-        /* --- MODAL --- */
         #api-key-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px); }
         .modal-content { background: #2a2a3e; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid rgba(255, 255, 255, 0.1); text-align: center; }
         .modal-content h2 { margin-top: 0; } .modal-content p { color: rgba(255, 255, 255, 0.7); line-height: 1.6; } .modal-content a { color: var(--primary-color); text-decoration: none; }
@@ -20,7 +19,6 @@
         .button-loader { width: 24px; height: 24px; border: 3px solid rgba(255, 255, 255, 0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* --- LAYOUT & BACKGROUND --- */
         .background-shapes { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; }
         .shape { position: absolute; border-radius: 50%; filter: blur(80px); }
         .shape-1 { width: 80vmin; height: 80vmin; background: linear-gradient(45deg, #ff00ff, #00ffff); animation: moveShape 25s infinite alternate; }
@@ -38,7 +36,10 @@
         #close-sidebar-button { background: none; border: none; cursor: pointer; padding: 6px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s; flex-shrink: 0; }
         #close-sidebar-button:hover { background-color: rgba(255, 255, 255, 0.1); }
         #close-sidebar-button svg { width: 24px; height: 24px; fill: #f0f0f0; }
-        #history-list { flex-grow: 1; overflow-y: auto; padding: 0 15px; list-style: none; margin: 0; }
+        
+        /* --- OPTIMIZED --- Sidebar Layout Fix */
+        #history-list-container { flex-grow: 1; overflow-y: auto; padding: 0 15px; min-height: 0; /* Prevents flexbox overflow */ }
+        #history-list { list-style: none; margin: 0; padding: 0; }
         .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; margin-bottom: 8px; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
         .history-item:hover { background: rgba(255, 255, 255, 0.1); }
         .history-item-title { flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 10px;}
@@ -48,7 +49,7 @@
         .delete-chat-button svg { width: 18px; height: 18px; fill: #f0f0f0; }
         .history-empty-message { text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.5); display: flex; flex-direction: column; align-items: center; gap: 15px; }
         .history-empty-message svg { width: 48px; height: 48px; opacity: 0.4; }
-        .sidebar-footer { padding: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        .sidebar-footer { padding: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1); flex-shrink: 0; }
         #logout-button { width: 100%; padding: 12px; background: transparent; border: 1px solid rgba(255, 80, 80, 0.3); color: #f5c5c5; font-size: 1rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
         #logout-button:hover { background: rgba(255, 80, 80, 0.25); border-color: rgba(255, 80, 80, 0.4); color: #ffacac; }
         #logout-button svg { width: 20px; height: 20px; }
@@ -74,16 +75,15 @@
         #add-button { background: none; border: none; color: #b0b0b0; width: 36px; height: 36px; border-radius: 50%; font-size: 1.8rem; font-weight: 300; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s ease-in-out; }
         #chat-input { flex-grow: 1; background: transparent; border: none; padding: 10px 10px; font-size: 1rem; color: #f0f0f0; outline: none; min-width: 0; }
         #send-button { background: none; border: none; padding: 0 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        #send-button svg { width: 24px; height: 24px; fill: #f0f0f0; transition: transform 0.2s, fill 0.2s; }
-        #send-button:hover svg { transform: scale(1.1); fill: var(--primary-color); }
         .chat-footer { padding: 10px; text-align: center; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); background: rgba(0, 0, 0, 0.1); flex-shrink: 0; }
         
         @media (min-width: 768px) {
             #app-container { width: 90vw; height: 90vh; border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); overflow: hidden;}
             #chat-window-wrapper { border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.18); }
             #history-sidebar { position: absolute; box-shadow: none; transform: translateX(0); }
-            body.sidebar-open #chat-window-wrapper { transform: translateX(0); margin-left: var(--sidebar-width); }
-            #close-sidebar-button { display: none; }
+            body.sidebar-open #chat-window-wrapper { margin-left: 0; transform: translateX(0); }
+            body.sidebar-open #history-sidebar { transform: translateX(0); }
+            #close-sidebar-button, #sidebar-overlay { display: none; }
         }
         @media (min-width: 1024px) { #app-container { max-width: 800px; } }
     </style>
@@ -95,14 +95,20 @@
     <div id="app-container">
         <div id="history-sidebar">
             <div class="sidebar-header"><button id="new-chat-button">+ New Chat</button><button id="close-sidebar-button" aria-label="Close Menu"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#f0f0f0"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></button></div>
-            <ul id="history-list"></ul>
+            <!-- --- OPTIMIZED --- New container for scrolling list -->
+            <div id="history-list-container">
+                <ul id="history-list"></ul>
+            </div>
             <div class="sidebar-footer"><button id="logout-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 17v-3H9v-4h7V7l5 5-5 5M14 2a2 2 0 012 2v2h-2V4H5v16h9v-2h2v2a2 2 0 01-2 2H5a2 2 0 01-2-2V4a2 2 0 012-2h9z"></path></svg>Logout / Change Key</button></div>
         </div>
         <div id="chat-window-wrapper">
-            <div class="chat-header"><button id="menu-button" aria-label="Open Menu"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f0f0f0"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg></button>HaldarAi 💡 Code Assistant</div>
-            <div id="message-container"></div>
-            <div class="chat-input-area"><div class="input-wrapper"><button id="add-button" aria-label="Add file">+</button><input type="text" id="chat-input" placeholder="e.g., Python function for bubble sort" autocomplete="off"><button id="send-button" aria-label="Send Message"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f0f0f0"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button></div></div>
-            <div class="chat-footer"><p>Made with ❤️ by HaldarAi 💡</p></div>
+            <div id="sidebar-overlay"></div>
+            <div id="chat-window">
+                <div class="chat-header"><button id="menu-button" aria-label="Open Menu"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f0f0f0"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg></button>HaldarAi 💡 Code Assistant</div>
+                <div id="message-container"></div>
+                <div class="chat-input-area"><div class="input-wrapper"><button id="add-button" aria-label="Add file">+</button><input type="text" id="chat-input" placeholder="e.g., Python function for bubble sort" autocomplete="off"><button id="send-button" aria-label="Send Message"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f0f0f0"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button></div></div>
+                <div class="chat-footer"><p>Made with ❤️ by HaldarAi 💡</p></div>
+            </div>
         </div>
     </div>
     
@@ -116,7 +122,10 @@
         const CHAT_HISTORY_STORAGE_KEY = 'haldarAi_chatHistory';
         const API_KEY_STORAGE_KEY = 'haldarAi_apiKey';
         const DOMElements = {
-            body: document.body, messageContainer: document.getElementById('message-container'), chatInput: document.getElementById('chat-input'), sendButton: document.getElementById('send-button'), addButton: document.getElementById('add-button'), menuButton: document.getElementById('menu-button'), newChatButton: document.getElementById('new-chat-button'), closeSidebarButton: document.getElementById('close-sidebar-button'), historyList: document.getElementById('history-list'), fileInput: document.getElementById('file-input'), apiKeyModal: document.getElementById('api-key-modal'), apiKeyInput: document.getElementById('api-key-input'), saveApiKeyButton: document.getElementById('save-api-key-button'),
+            body: document.body, messageContainer: document.getElementById('message-container'), chatInput: document.getElementById('chat-input'), sendButton: document.getElementById('send-button'), addButton: document.getElementById('add-button'), menuButton: document.getElementById('menu-button'), newChatButton: document.getElementById('new-chat-button'), closeSidebarButton: document.getElementById('close-sidebar-button'), sidebarOverlay: document.getElementById('sidebar-overlay'),
+            historyListContainer: document.getElementById('history-list-container'), // Optimized
+            historyList: document.getElementById('history-list'),
+            fileInput: document.getElementById('file-input'), apiKeyModal: document.getElementById('api-key-modal'), apiKeyInput: document.getElementById('api-key-input'), saveApiKeyButton: document.getElementById('save-api-key-button'),
             buttonText: document.querySelector('#save-api-key-button .button-text'),
             buttonLoader: document.querySelector('#save-api-key-button .button-loader'),
             logoutButton: document.getElementById('logout-button'),
@@ -146,15 +155,18 @@
         }
         
         function renderHistoryList() {
-            DOMElements.historyList.innerHTML = '';
+            DOMElements.historyListContainer.innerHTML = ''; // Clear container
             if (allChats.length === 0) {
                 const emptyMessage = document.createElement('div');
                 emptyMessage.className = 'history-empty-message';
                 emptyMessage.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20,2H4A2,2 0 0,0 2,4V22L6,18H20A2,2 0 0,0 22,16V4A2,2 0 0,0 20,2M20,16H5.17L4,17.17V4H20V16Z" /></svg> No chat history yet.`;
-                DOMElements.historyList.appendChild(emptyMessage);
+                DOMElements.historyListContainer.appendChild(emptyMessage);
                 return;
             }
-            [...allChats].reverse().forEach(chat => { const li = document.createElement('li'); li.className = 'history-item'; li.dataset.chatId = chat.id; li.addEventListener('click', () => loadChat(chat.id)); const titleSpan = document.createElement('span'); titleSpan.className = 'history-item-title'; titleSpan.textContent = chat.title; li.appendChild(titleSpan); const deleteButton = document.createElement('button'); deleteButton.className = 'delete-chat-button'; deleteButton.title = "Delete Chat"; deleteButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f0f0f0"><path d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z" /></svg>`; deleteButton.addEventListener('click', (event) => deleteChat(chat.id, event)); li.appendChild(deleteButton); DOMElements.historyList.appendChild(li); });
+            const ul = document.createElement('ul');
+            ul.id = 'history-list';
+            [...allChats].reverse().forEach(chat => { const li = document.createElement('li'); li.className = 'history-item'; li.dataset.chatId = chat.id; li.addEventListener('click', () => loadChat(chat.id)); const titleSpan = document.createElement('span'); titleSpan.className = 'history-item-title'; titleSpan.textContent = chat.title; li.appendChild(titleSpan); const deleteButton = document.createElement('button'); deleteButton.className = 'delete-chat-button'; deleteButton.title = "Delete Chat"; deleteButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f0f0f0"><path d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z" /></svg>`; deleteButton.addEventListener('click', (event) => deleteChat(chat.id, event)); li.appendChild(deleteButton); ul.appendChild(li); });
+            DOMElements.historyListContainer.appendChild(ul);
         }
         
         function startNewChat() { currentChatId = null; conversationHistory = []; attachedFile = null; DOMElements.messageContainer.innerHTML = ''; DOMElements.chatInput.value = ''; displayEntry("Welcome to HaldarAi 💡. Ask me to write some code!", 'bot', true); toggleSidebar(false); }
@@ -207,7 +219,7 @@
             DOMElements.chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } });
             DOMElements.addButton.addEventListener('click', () => DOMElements.fileInput.click());
             DOMElements.fileInput.addEventListener('change', handleFileSelect); 
-            DOMElements.menuButton.addEventListener('click', () => toggleSidebar());
+            DOMElements.menuButton.addEventListener('click', () => toggleSidebar(true));
             DOMElements.newChatButton.addEventListener('click', startNewChat);
             DOMElements.closeSidebarButton.addEventListener('click', () => toggleSidebar(false));
             DOMElements.logoutButton.addEventListener('click', logout);
