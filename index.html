@@ -23,12 +23,14 @@
         .shape-1 { width: 80vmin; height: 80vmin; background: linear-gradient(45deg, #ff00ff, #00ffff); animation: moveShape 25s infinite alternate; }
         .shape-2 { width: 70vmin; height: 70vmin; background: linear-gradient(45deg, #f09819, #edde5d); animation: moveShape 30s infinite alternate-reverse; animation-delay: -5s; }
         @keyframes moveShape { from { transform: translate(10vw, -15vh) rotate(0deg); } to { transform: translate(80vw, 70vh) rotate(360deg); } }
-        #chat-window { position: relative; width: 100%; height: 100%; display: flex; overflow: hidden; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        
+        #chat-window { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: margin-left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        
         #sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9; opacity: 0; pointer-events: none; transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); }
         #history-sidebar { width: var(--sidebar-width); background: rgba(10, 10, 25, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.1); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 10; box-shadow: 3px 0 15px rgba(0,0,0,0.25); }
         body.sidebar-open #history-sidebar { transform: translateX(0); }
         body.sidebar-open #sidebar-overlay { opacity: 1; pointer-events: auto; }
-        body.sidebar-open #menu-button { opacity: 0; pointer-events: none; }
+        
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; padding: 15px; flex-shrink: 0; }
         #new-chat-button { flex-grow: 1; margin-right: 10px; padding: 12px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #f0f0f0; font-size: 1rem; font-weight: 500; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
         #new-chat-button:hover { background: rgba(255, 255, 255, 0.2); }
@@ -47,7 +49,7 @@
         #logout-button { width: 100%; padding: 12px; background: rgba(255, 80, 80, 0.15); border: 1px solid rgba(255, 80, 80, 0.3); color: #f5c5c5; font-size: 1rem; border-radius: 8px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
         #logout-button:hover { background: rgba(255, 80, 80, 0.25); border-color: rgba(255, 80, 80, 0.4); }
         #logout-button svg { width: 20px; height: 20px; }
-        #main-content { width: 100%; display: flex; flex-direction: column; flex-grow: 1; min-width: 0; }
+        
         .chat-header { position: relative; padding: 15px; font-size: 1.2rem; font-weight: bold; text-align: center; background: rgba(255, 255, 255, 0.15); border-bottom: 1px solid rgba(255, 255, 255, 0.1); flex-shrink: 0; }
         #menu-button { position: absolute; top: 50%; left: 15px; transform: translateY(-50%); background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 40px; height: 40px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease-in-out; z-index: 5; }
         #menu-button:hover { background: var(--primary-color); border-color: var(--primary-color); transform: translateY(-50%) scale(1.1); }
@@ -70,7 +72,7 @@
         #send-button svg { width: 24px; height: 24px; fill: #f0f0f0; transition: transform 0.2s, fill 0.2s; }
         #send-button:hover svg { transform: scale(1.1); fill: var(--primary-color); }
         .chat-footer { padding: 10px; text-align: center; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); background: rgba(0, 0, 0, 0.1); flex-shrink: 0; }
-        @media (min-width: 768px) { #chat-window { width: 90vw; height: 90vh; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.18); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); } #history-sidebar { position: absolute; box-shadow: none; } body.sidebar-open #main-content { margin-left: var(--sidebar-width); transition: margin-left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); } body.sidebar-open #sidebar-overlay { display: none; } body.sidebar-open #menu-button { opacity: 1; pointer-events: auto; } }
+        @media (min-width: 768px) { #chat-window { width: 90vw; height: 90vh; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.18); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); } body.sidebar-open #chat-window { margin-left: var(--sidebar-width); } #history-sidebar { position: fixed; } body.sidebar-open #sidebar-overlay { display: none; } body.sidebar-open #menu-button { opacity: 1; pointer-events: auto; } }
         @media (min-width: 1024px) { #chat-window { max-width: 800px; } }
     </style>
 </head>
@@ -78,18 +80,18 @@
     
     <div class="background-shapes"><div class="shape shape-1"></div><div class="shape shape-2"></div></div>
     <div id="sidebar-overlay"></div>
-    <input type="file" id="file-input" style="display: none;">
+    <div id="history-sidebar"><div class="sidebar-header"><button id="new-chat-button">+ New Chat</button><button id="close-sidebar-button" aria-label="Close Menu"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#f0f0f0"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></button></div><ul id="history-list"></ul><div class="sidebar-footer"><button id="logout-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 17v-3H9v-4h7V7l5 5-5 5M14 2a2 2 0 012 2v2h-2V4H5v16h9v-2h2v2a2 2 0 01-2 2H5a2 2 0 01-2-2V4a2 2 0 012-2h9z"></path></svg>Logout / Change Key</button></div></div>
+    
     <div id="api-key-modal" class="hidden"><div class="modal-content"><h2>Enter Your API Key</h2><p>To use HaldarAi, you need a Google AI API key. The key is stored <strong>only in your browser</strong> and is never shared. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Get your API key from Google AI Studio.</a></p><input type="password" id="api-key-input" placeholder="Paste your API key here"><button id="save-api-key-button"><span class="button-text">Save and Start Chatting</span><span class="button-loader hidden"></span></button></div></div>
 
     <div id="chat-window">
-        <div id="history-sidebar"><div class="sidebar-header"><button id="new-chat-button">+ New Chat</button><button id="close-sidebar-button" aria-label="Close Menu"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#f0f0f0"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></button></div><ul id="history-list"></ul><div class="sidebar-footer"><button id="logout-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 17v-3H9v-4h7V7l5 5-5 5M14 2a2 2 0 012 2v2h-2V4H5v16h9v-2h2v2a2 2 0 01-2 2H5a2 2 0 01-2-2V4a2 2 0 012-2h9z"></path></svg>Logout / Change Key</button></div></div>
-        <div id="main-content">
-            <div class="chat-header"><button id="menu-button" aria-label="Open Menu"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f0f0f0"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg></button>HaldarAi 💡 Code Assistant</div>
-            <div id="message-container"></div>
-            <div class="chat-input-area"><div class="input-wrapper"><button id="add-button" aria-label="Add file">+</button><input type="text" id="chat-input" placeholder="e.g., Python function for bubble sort" autocomplete="off"><button id="send-button" aria-label="Send Message"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f0f0f0"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button></div></div>
-            <div class="chat-footer"><p>Made with ❤️ by HaldarAi 💡</p></div>
-        </div>
+        <div class="chat-header"><button id="menu-button" aria-label="Open Menu"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f0f0f0"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg></button>HaldarAi 💡 Code Assistant</div>
+        <div id="message-container"></div>
+        <div class="chat-input-area"><div class="input-wrapper"><button id="add-button" aria-label="Add file">+</button><input type="text" id="chat-input" placeholder="e.g., Python function for bubble sort" autocomplete="off"><button id="send-button" aria-label="Send Message"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f0f0f0"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button></div></div>
+        <div class="chat-footer"><p>Made with ❤️ by HaldarAi 💡</p></div>
     </div>
+    
+    <input type="file" id="file-input" style="display: none;">
 
     <script>
         let apiKey = null;
@@ -118,9 +120,10 @@
             if (confirm("Are you sure you want to delete this chat?")) {
                 allChats = allChats.filter(chat => chat.id !== id);
                 saveChatsToStorage();
-                renderHistoryList();
                 if (currentChatId === id) {
                     initializeMainApp(true);
+                } else {
+                    renderHistoryList();
                 }
             }
         }
@@ -129,7 +132,7 @@
         
         function startNewChat() { currentChatId = null; conversationHistory = []; attachedFile = null; DOMElements.messageContainer.innerHTML = ''; DOMElements.chatInput.value = ''; displayEntry("Welcome to HaldarAi 💡. Ask me to write some code!", 'bot', true); toggleSidebar(false); }
         
-        function loadChat(id) { const chat = allChats.find(c => c.id === id); if (chat) { currentChatId = chat.id; conversationHistory = [...chat.history]; attachedFile = null; DOMElements.messageContainer.innerHTML = ''; chat.history.forEach(turn => { const text = turn.parts.map(p => p.text).join(""); displayEntry(text, turn.role, true); }); scrollToBottom(); toggleSidebar(false); saveOrUpdateChat(); } }
+        function loadChat(id) { const chat = allChats.find(c => c.id === id); if (chat) { currentChatId = chat.id; conversationHistory = [...chat.history]; attachedFile = null; DOMElements.messageContainer.innerHTML = ''; chat.history.forEach(turn => { const text = turn.parts.map(p => p.text).join(""); displayEntry(text, turn.role, true); }); scrollToBottom(); toggleSidebar(false); } }
         
         function saveOrUpdateChat() {
             if (conversationHistory.length === 0) return;
