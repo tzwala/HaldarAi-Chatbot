@@ -82,16 +82,7 @@
     <div id="api-key-modal" class="hidden"><div class="modal-content"><h2>Enter Your API Key</h2><p>To use HaldarAi, you need a Google AI API key. The key is stored <strong>only in your browser</strong> and is never shared. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Get your API key from Google AI Studio.</a></p><input type="password" id="api-key-input" placeholder="Paste your API key here"><button id="save-api-key-button"><span class="button-text">Save and Start Chatting</span><span class="button-loader hidden"></span></button></div></div>
 
     <div id="chat-window">
-        <div id="history-sidebar">
-            <div class="sidebar-header"><button id="new-chat-button">+ New Chat</button><button id="close-sidebar-button" aria-label="Close Menu"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#f0f0f0"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></button></div>
-            <ul id="history-list"></ul>
-            <div class="sidebar-footer">
-                <button id="logout-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 17v-3H9v-4h7V7l5 5-5 5M14 2a2 2 0 012 2v2h-2V4H5v16h9v-2h2v2a2 2 0 01-2 2H5a2 2 0 01-2-2V4a2 2 0 012-2h9z"></path></svg>
-                    Logout / Change Key
-                </button>
-            </div>
-        </div>
+        <div id="history-sidebar"><div class="sidebar-header"><button id="new-chat-button">+ New Chat</button><button id="close-sidebar-button" aria-label="Close Menu"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#f0f0f0"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></button></div><ul id="history-list"></ul><div class="sidebar-footer"><button id="logout-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 17v-3H9v-4h7V7l5 5-5 5M14 2a2 2 0 012 2v2h-2V4H5v16h9v-2h2v2a2 2 0 01-2 2H5a2 2 0 01-2-2V4a2 2 0 012-2h9z"></path></svg>Logout / Change Key</button></div></div>
         <div id="main-content">
             <div class="chat-header"><button id="menu-button" aria-label="Open Menu"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f0f0f0"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg></button>HaldarAi 💡 Code Assistant</div>
             <div id="message-container"></div>
