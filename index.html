@@ -62,11 +62,20 @@
         #menu-button:hover { background: var(--primary-color); border-color: var(--primary-color); transform: translateY(-50%) scale(1.1); }
         #message-container { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; min-height: 0; }
         .message { padding: 12px 18px; border-radius: 18px; max-width: 90%; line-height: 1.5; word-wrap: break-word; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .bot-message { background: rgba(255, 255, 255, 0.2); color: #f0f0f0; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .bot-message { background: rgba(255, 255, 255, 0.2); color: #f0f0f0; align-self: flex-start; border-bottom-left-radius: 4px; padding: 12px 18px; /* Restored padding for regular bot messages */ }
         .user-message { background: var(--primary-color); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
         .info-message { align-self: center; background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); font-size: 0.85rem; max-width: 70%; display: flex; align-items: center; }
-        .code-block { background: var(--code-bg); font-family: 'Fira Code', 'Courier New', monospace; padding: 15px; border-radius: 8px; overflow-x: auto; max-width: 100%; align-self: flex-start; width: 95%; font-size: 0.9em; border: 1px solid rgba(255, 255, 255, 0.1); }
+        
+        /* --- NEW STYLES FOR CODE PREVIEW --- */
+        .code-block-wrapper { background: var(--code-bg); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); margin: 8px 0; align-self: flex-start; width: 100%; max-width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .code-header { display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; background: rgba(255, 255, 255, 0.1); border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .language-label { font-size: 0.8em; color: rgba(255, 255, 255, 0.6); text-transform: uppercase; font-weight: bold; }
+        .copy-button { background-color: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255,255,255,0.2); color: #f0f0f0; padding: 4px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8em; transition: background-color 0.2s; display: flex; align-items: center; gap: 5px; }
+        .copy-button:hover { background-color: rgba(255, 255, 255, 0.3); }
+        .copy-button.copied { background-color: #50fa7b; color: #121225; border-color: #50fa7b; }
+        .code-block { font-family: 'Fira Code', 'Courier New', monospace; padding: 15px; margin: 0; overflow-x: auto; font-size: 0.9em; /* Removed background and border from here */ }
         .token.comment { color: #6272a4; font-style: italic; } .token.string { color: #f1fa8c; } .token.keyword { color: #ff79c6; } .token.function { color: #50fa7b; } .token.number { color: #bd93f9; } .token.operator { color: #ff79c6; } .token.punctuation { color: #f8f8f2; } .token.tag { color: #ff79c6; } .token.attr-name { color: #50fa7b; }
+        
         .loading-indicator { align-self: flex-start; display: flex; align-items: center; gap: 8px; padding: 10px 15px; }
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
         .loading-indicator .dot { width: 8px; height: 8px; background-color: rgba(255,255,255,0.5); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
@@ -97,32 +106,22 @@
     <div class="background-shapes"><div class="shape shape-1"></div><div class="shape shape-2"></div></div>
     
     <div id="app-container">
-        <div id="history-sidebar">
-            <div class="sidebar-header"><button id="new-chat-button">+ New Chat</button><button id="close-sidebar-button" aria-label="Close Menu"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f0f0f0"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></button></div>
-            <div id="history-list-container"></div>
-            <div class="sidebar-footer"><button id="logout-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 17v-3H9v-4h7V7l5 5-5 5M14 2a2 2 0 012 2v2h-2V4H5v16h9v-2h2v2a2 2 0 01-2 2H5a2 2 0 01-2-2V4a2 2 0 012-2h9z"></path></svg>Logout / Change Key</button></div>
-        </div>
-        
+        <div id="history-sidebar"><!-- ... sidebar content ... --></div>
         <div id="sidebar-overlay"></div>
-
-        <div id="chat-window-wrapper">
-            <div class="chat-header"><button id="menu-button" aria-label="Open Menu"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f0f0f0"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg></button>HaldarAi 💡 Code Assistant</div>
-            <div id="message-container"></div>
-            <div class="chat-input-area"><div class="input-wrapper"><button id="add-button" aria-label="Add file">+</button><input type="text" id="chat-input" placeholder="e.g., Python function for bubble sort" autocomplete="off"><button id="send-button" aria-label="Send Message"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f0f0f0"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button></div></div>
-            <div class="chat-footer"><p>Made with ❤️ by HaldarAi 💡</p></div>
-        </div>
+        <div id="chat-window-wrapper"><!-- ... chat window content ... --></div>
     </div>
     
-    <div id="api-key-modal" class="hidden"><div class="modal-content"><h2>Enter Your API Key</h2><p>To use HaldarAi, you need a Google AI API key. The key is stored <strong>only in your browser</strong> and is never shared. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Get your API key from Google AI Studio.</a></p><input type="password" id="api-key-input" placeholder="Paste your API key here"><button id="save-api-key-button"><span class="button-text">Save and Start Chatting</span><span class="button-loader hidden"></span></button></div></div>
-    
+    <div id="api-key-modal" class="hidden"><!-- ... modal content ... --></div>
     <input type="file" id="file-input" style="display: none;">
 
     <script>
+        // --- All the unchanged elements and initial variables are here ---
         let apiKey = null;
         const MODEL_NAME = 'gemini-1.5-flash-latest';
         const CHAT_HISTORY_STORAGE_KEY = 'haldarAi_chatHistory';
         const API_KEY_STORAGE_KEY = 'haldarAi_apiKey';
         const DOMElements = {
+            // ... (All DOM element selections remain the same)
             body: document.body, messageContainer: document.getElementById('message-container'), chatInput: document.getElementById('chat-input'), sendButton: document.getElementById('send-button'), addButton: document.getElementById('add-button'), menuButton: document.getElementById('menu-button'), newChatButton: document.getElementById('new-chat-button'), closeSidebarButton: document.getElementById('close-sidebar-button'),
             historyListContainer: document.getElementById('history-list-container'),
             sidebarOverlay: document.getElementById('sidebar-overlay'),
@@ -134,155 +133,129 @@
 
         let conversationHistory = []; let allChats = []; let currentChatId = null; let attachedFile = null;
 
+        // --- Functions like handleSendMessage, handleFileSelect, etc., are here but abbreviated for clarity ---
+        // handleSendMessage, handleFileSelect, displayFileInfo, loadChatsFromStorage, saveChatsToStorage,
+        // deleteChat, renderHistoryList, startNewChat, loadChat, saveOrUpdateChat, toggleSidebar,
+        // toggleLoadingIndicator, getBotResponse, highlightSyntax, scrollToBottom, logout, initializeMainApp
+        // ALL OF THE ABOVE FUNCTIONS REMAIN THE SAME, EXCEPT displayEntry
+        // Re-populating the full script structure for completeness...
+        
         async function handleSendMessage() { if (!apiKey) { alert("API Key not set."); return; } const userInput = DOMElements.chatInput.value.trim(); if (!userInput && !attachedFile) return; if (attachedFile) { attachedFile = null; } if (userInput) { displayEntry(userInput, 'user'); conversationHistory.push({ role: 'user', parts: [{ text: userInput }] }); saveOrUpdateChat(); } DOMElements.chatInput.value = ''; toggleLoadingIndicator(true); try { if (conversationHistory.length === 0) { throw new Error("Cannot send empty message to API."); } const botResponse = await getBotResponse(); const fullResponseText = botResponse.candidates[0].content.parts.map(part => part.text).join(""); conversationHistory.push({ role: 'model', parts: [{ text: fullResponseText }] }); saveOrUpdateChat(); displayEntry(fullResponseText, 'bot'); } catch (error) { console.error("Error getting bot response:", error); const errorMessage = error.message.includes("API Error:") ? "Sorry, API error. Check your key and API settings." : "Sorry, an error occurred. See console."; displayEntry(errorMessage, 'bot'); } finally { toggleLoadingIndicator(false); } }
         function handleFileSelect(event) { const file = event.target.files[0]; if (file) { attachedFile = file; displayFileInfo(file.name); } event.target.value = null; }
         function displayFileInfo(fileName) { const existingInfo = document.querySelector('.info-message'); if (existingInfo) existingInfo.remove(); const infoDiv = document.createElement('div'); infoDiv.classList.add('message', 'info-message'); infoDiv.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" height="20px" width="20px" viewBox="0 0 24 24" style="margin-right: 8px;"><path d="M16.5,6V17.5A4,4 0 0,1 12.5,21.5A4,4 0 0,1 8.5,17.5V5A2.5,2.5 0 0,1 11,2.5A2.5,2.5 0 0,1 13.5,5V15.5A1,1 0 0,1 12.5,16.5A1,1 0 0,1 11.5,15.5V6H10V15.5A2.5,2.5 0 0,0 12.5,18A2.5,2.5 0 0,0 15,15.5V5A4,4 0 0,0 11,1A4,4 0 0,0 7,5V17.5A5.5,5.5 0 0,0 12.5,23A5.5,5.5 0 0,0 18,17.5V6H16.5Z" /></svg><span>File attached: <strong>${fileName}</strong></span>`; DOMElements.messageContainer.appendChild(infoDiv); scrollToBottom(); }
-        function displayEntry(text, sender, isInitialLoad = false) { if (!text && sender === 'user') return; const loadingIndicator = document.querySelector('.loading-indicator'); if(loadingIndicator) loadingIndicator.remove(); if (sender === 'user') { const messageDiv = document.createElement('div'); messageDiv.classList.add('message', 'user-message'); messageDiv.textContent = text; DOMElements.messageContainer.appendChild(messageDiv); } else { const codeBlockRegex = /```(\w+)?\n([\s\S]+?)\n```/g; let lastIndex = 0; for (const match of text.matchAll(codeBlockRegex)) { const precedingText = text.substring(lastIndex, match.index).trim(); if (precedingText) { const messageDiv = document.createElement('div'); messageDiv.classList.add('message', 'bot-message'); messageDiv.textContent = precedingText; DOMElements.messageContainer.appendChild(messageDiv); } const lang = match[1] || 'plaintext'; const codePart = match[2].trim(); const pre = document.createElement('pre'); pre.classList.add('code-block'); const codeEl = document.createElement('code'); codeEl.innerHTML = highlightSyntax(codePart, lang); pre.appendChild(codeEl); DOMElements.messageContainer.appendChild(pre); lastIndex = match.index + match[0].length; } const remainingText = text.substring(lastIndex).trim(); if(remainingText) { const messageDiv = document.createElement('div'); messageDiv.classList.add('message', 'bot-message'); messageDiv.textContent = remainingText; DOMElements.messageContainer.appendChild(messageDiv); } } if (!isInitialLoad) scrollToBottom(); }
         
-        function loadChatsFromStorage() { try { const storedChats = localStorage.getItem(CHAT_HISTORY_STORAGE_KEY); allChats = storedChats ? JSON.parse(storedChats) : []; } catch (e) { allChats = []; } }
-        function saveChatsToStorage() { try { localStorage.setItem(CHAT_HISTORY_STORAGE_KEY, JSON.stringify(allChats)); } catch (e) { console.error("Could not save chat history:", e); } }
+        function displayEntry(text, sender, isInitialLoad = false) {
+            if (!text && sender === 'user') return;
+            const loadingIndicator = document.querySelector('.loading-indicator');
+            if(loadingIndicator) loadingIndicator.remove();
         
-        function deleteChat(id, event) {
-            event.stopPropagation();
-            if (confirm("Are you sure you want to delete this chat?")) {
-                allChats = allChats.filter(chat => chat.id !== id);
-                saveChatsToStorage();
-                if (currentChatId === id) {
-                    initializeMainApp(true);
-                } else {
-                    renderHistoryList();
+            if (sender === 'user') {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message', 'user-message');
+                messageDiv.textContent = text;
+                DOMElements.messageContainer.appendChild(messageDiv);
+            } else {
+                const codeBlockRegex = /```(\w+)?\n([\s\S]+?)\n```/g;
+                let lastIndex = 0;
+        
+                for (const match of text.matchAll(codeBlockRegex)) {
+                    // 1. Display any text that comes *before* the code block
+                    const precedingText = text.substring(lastIndex, match.index).trim();
+                    if (precedingText) {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.classList.add('message', 'bot-message');
+                        messageDiv.textContent = precedingText;
+                        DOMElements.messageContainer.appendChild(messageDiv);
+                    }
+        
+                    // 2. Create the new, enhanced code block structure
+                    const lang = match[1] || 'text';
+                    const codePart = match[2].trim();
+        
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'code-block-wrapper';
+        
+                    const header = document.createElement('div');
+                    header.className = 'code-header';
+        
+                    const langLabel = document.createElement('span');
+                    langLabel.className = 'language-label';
+                    langLabel.textContent = lang;
+        
+                    const copyButton = document.createElement('button');
+                    copyButton.className = 'copy-button';
+                    copyButton.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> <span>Copy</span>`;
+        
+                    header.appendChild(langLabel);
+                    header.appendChild(copyButton);
+        
+                    const pre = document.createElement('pre');
+                    pre.className = 'code-block';
+                    const codeEl = document.createElement('code');
+                    codeEl.innerHTML = highlightSyntax(codePart, lang);
+                    pre.appendChild(codeEl);
+        
+                    wrapper.appendChild(header);
+                    wrapper.appendChild(pre);
+                    DOMElements.messageContainer.appendChild(wrapper);
+        
+                    lastIndex = match.index + match[0].length;
+                }
+        
+                // 3. Display any remaining text *after* all code blocks
+                const remainingText = text.substring(lastIndex).trim();
+                if(remainingText) {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.classList.add('message', 'bot-message');
+                    messageDiv.textContent = remainingText;
+                    DOMElements.messageContainer.appendChild(messageDiv);
                 }
             }
+        
+            if (!isInitialLoad) scrollToBottom();
         }
         
-        function renderHistoryList() {
-            DOMElements.historyListContainer.innerHTML = '';
-            if (allChats.length === 0) {
-                const emptyMessage = document.createElement('div');
-                emptyMessage.className = 'history-empty-message';
-                emptyMessage.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20,2H4A2,2 0 0,0 2,4V22L6,18H20A2,2 0 0,0 22,16V4A2,2 0 0,0 20,2M20,16H5.17L4,17.17V4H20V16Z" /></svg> No chat history yet.`;
-                DOMElements.historyListContainer.appendChild(emptyMessage);
-                return;
+        // Add event listener for all copy buttons (using event delegation)
+        DOMElements.messageContainer.addEventListener('click', (event) => {
+            const copyButton = event.target.closest('.copy-button');
+            if (copyButton) {
+                const wrapper = copyButton.closest('.code-block-wrapper');
+                const code = wrapper.querySelector('code').innerText;
+                navigator.clipboard.writeText(code).then(() => {
+                    copyButton.innerHTML = '<span>Copied!</span>';
+                    copyButton.classList.add('copied');
+                    setTimeout(() => {
+                        copyButton.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> <span>Copy</span>`;
+                        copyButton.classList.remove('copied');
+                    }, 2000);
+                });
             }
-            const ul = document.createElement('ul');
-            ul.id = 'history-list';
-            [...allChats].reverse().forEach(chat => { const li = document.createElement('li'); li.className = 'history-item'; li.dataset.chatId = chat.id; li.addEventListener('click', () => loadChat(chat.id)); const titleSpan = document.createElement('span'); titleSpan.className = 'history-item-title'; titleSpan.textContent = chat.title; li.appendChild(titleSpan); const deleteButton = document.createElement('button'); deleteButton.className = 'delete-chat-button'; deleteButton.title = "Delete Chat"; deleteButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z" /></svg>`; deleteButton.addEventListener('click', (event) => deleteChat(chat.id, event)); li.appendChild(deleteButton); ul.appendChild(li); });
-            DOMElements.historyListContainer.appendChild(ul);
-        }
+        });
         
+        // --- Rest of the JavaScript functions (unchanged) ---
+        function loadChatsFromStorage() { try { const storedChats = localStorage.getItem(CHAT_HISTORY_STORAGE_KEY); allChats = storedChats ? JSON.parse(storedChats) : []; } catch (e) { allChats = []; } }
+        function saveChatsToStorage() { try { localStorage.setItem(CHAT_HISTORY_STORAGE_KEY, JSON.stringify(allChats)); } catch (e) { console.error("Could not save chat history:", e); } }
+        function deleteChat(id, event) { event.stopPropagation(); if (confirm("Are you sure you want to delete this chat?")) { allChats = allChats.filter(chat => chat.id !== id); saveChatsToStorage(); if (currentChatId === id) { initializeMainApp(true); } else { renderHistoryList(); } } }
+        function renderHistoryList() { DOMElements.historyListContainer.innerHTML = ''; if (allChats.length === 0) { const emptyMessage = document.createElement('div'); emptyMessage.className = 'history-empty-message'; emptyMessage.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20,2H4A2,2 0 0,0 2,4V22L6,18H20A2,2 0 0,0 22,16V4A2,2 0 0,0 20,2M20,16H5.17L4,17.17V4H20V16Z" /></svg> No chat history yet.`; DOMElements.historyListContainer.appendChild(emptyMessage); return; } const ul = document.createElement('ul'); ul.id = 'history-list'; [...allChats].reverse().forEach(chat => { const li = document.createElement('li'); li.className = 'history-item'; li.dataset.chatId = chat.id; li.addEventListener('click', () => loadChat(chat.id)); const titleSpan = document.createElement('span'); titleSpan.className = 'history-item-title'; titleSpan.textContent = chat.title; li.appendChild(titleSpan); const deleteButton = document.createElement('button'); deleteButton.className = 'delete-chat-button'; deleteButton.title = "Delete Chat"; deleteButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z" /></svg>`; deleteButton.addEventListener('click', (event) => deleteChat(chat.id, event)); li.appendChild(deleteButton); ul.appendChild(li); }); DOMElements.historyListContainer.appendChild(ul); }
         function startNewChat() { currentChatId = null; conversationHistory = []; attachedFile = null; DOMElements.messageContainer.innerHTML = ''; DOMElements.chatInput.value = ''; displayEntry("Welcome to HaldarAi 💡. Ask me to write some code!", 'bot', true); toggleSidebar(false); }
-        
         function loadChat(id) { const chat = allChats.find(c => c.id === id); if (chat) { currentChatId = chat.id; conversationHistory = [...chat.history]; attachedFile = null; DOMElements.messageContainer.innerHTML = ''; chat.history.forEach(turn => { const text = turn.parts.map(p => p.text).join(""); displayEntry(text, turn.role, true); }); scrollToBottom(); toggleSidebar(false); } }
-        
-        function saveOrUpdateChat() {
-            if (conversationHistory.length === 0) return;
-            const chatIndex = allChats.findIndex(c => c.id === currentChatId);
-            let chatToSave;
-            if (chatIndex > -1) {
-                chatToSave = allChats.splice(chatIndex, 1)[0];
-                chatToSave.history = [...conversationHistory];
-            } else {
-                const firstUserMessage = conversationHistory.find(turn => turn.role === 'user');
-                if (!firstUserMessage) return;
-                const titleText = firstUserMessage.parts[0].text;
-                currentChatId = Date.now().toString();
-                chatToSave = { id: currentChatId, title: titleText.substring(0, 40) + (titleText.length > 40 ? '...' : ''), history: [...conversationHistory] };
-            }
-            allChats.push(chatToSave);
-            saveChatsToStorage();
-            renderHistoryList();
-        }
-        
+        function saveOrUpdateChat() { if (conversationHistory.length === 0) return; const chatIndex = allChats.findIndex(c => c.id === currentChatId); let chatToSave; if (chatIndex > -1) { chatToSave = allChats.splice(chatIndex, 1)[0]; chatToSave.history = [...conversationHistory]; } else { const firstUserMessage = conversationHistory.find(turn => turn.role === 'user'); if (!firstUserMessage) return; const titleText = firstUserMessage.parts[0].text; currentChatId = Date.now().toString(); chatToSave = { id: currentChatId, title: titleText.substring(0, 40) + (titleText.length > 40 ? '...' : ''), history: [...conversationHistory] }; } allChats.push(chatToSave); saveChatsToStorage(); renderHistoryList(); }
         function toggleSidebar(forceState) { DOMElements.body.classList.toggle('sidebar-open', forceState); }
         function toggleLoadingIndicator(show) { let i = document.querySelector('.loading-indicator'); if (show) { if (!i) { i = document.createElement('div'); i.className = 'loading-indicator'; i.innerHTML = '<div class="dot" style="animation-delay: 0s;"></div><div class="dot" style="animation-delay: .2s;"></div><div class="dot" style="animation-delay: .4s;"></div>'; DOMElements.messageContainer.appendChild(i); scrollToBottom(); } } else if (i) { i.remove(); } }
-        
-        async function getBotResponse() {
-            // *** FIX: Updated API endpoint from v1beta to v1 ***
-            const u = `https://generativelanguage.googleapis.com/v1/models/${MODEL_NAME}:generateContent?key=${apiKey}`;
-            const s = { parts: [{ text: `You are a helpful and expert AI programming assistant named HaldarAi 💡. Provide a brief, one-sentence explanation of the code's purpose. Generate clean, efficient, and well-commented code. You MUST provide the code enclosed in a markdown-style code block with the language specified, like \`\`\`python\n...\n\`\`\`.` }] }; 
-            const r = { systemInstruction: s, contents: conversationHistory, generationConfig: { temperature: 0.4, maxOutputTokens: 4096 }, safetySettings: [{ category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" }] }; 
-            const f = await fetch(u, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(r) }); 
-            if (!f.ok) { 
-                const e = await f.json(); 
-                console.error("API Error Details:", e);
-                throw new Error(`API Error: ${f.status} ${f.statusText} - ${e.error?.message || JSON.stringify(e)}`); 
-            } 
-            const d = await f.json(); 
-            if (!d.candidates?.[0]?.content?.parts) { 
-                if (d.promptFeedback?.blockReason) { 
-                    throw new Error(`Request blocked: ${d.promptFeedback.blockReason}`); 
-                } 
-                console.error("Invalid API Response:", d);
-                throw new Error("API returned no content or an unexpected response format."); 
-            } 
-            return d; 
-        }
-
+        async function getBotResponse() { const u = `https://generativelanguage.googleapis.com/v1/models/${MODEL_NAME}:generateContent?key=${apiKey}`; const s = { parts: [{ text: `You are a helpful and expert AI programming assistant named HaldarAi 💡. Provide a brief, one-sentence explanation of the code's purpose. Generate clean, efficient, and well-commented code. You MUST provide the code enclosed in a markdown-style code block with the language specified, like \`\`\`python\n...\n\`\`\`.` }] }; const r = { systemInstruction: s, contents: conversationHistory, generationConfig: { temperature: 0.4, maxOutputTokens: 4096 }, safetySettings: [{ category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" }] }; const f = await fetch(u, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(r) }); if (!f.ok) { const e = await f.json(); console.error("API Error Details:", e); throw new Error(`API Error: ${f.status} ${f.statusText} - ${e.error?.message || JSON.stringify(e)}`); } const d = await f.json(); if (!d.candidates?.[0]?.content?.parts) { if (d.promptFeedback?.blockReason) { throw new Error(`Request blocked: ${d.promptFeedback.blockReason}`); } console.error("Invalid API Response:", d); throw new Error("API returned no content or an unexpected response format."); } return d; }
         function highlightSyntax(c, l) { let h = c.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>'); const j = 'const|let|var|function|return|if|else|for|while|import|export|from|async|await|class|new|this|true|false|null|undefined', p = 'def|return|if|else|elif|for|while|import|from|class|True|False|None|and|or|not|in|is|lambda|with|as|try|except|finally'; let k = ''; if (['javascript', 'js', 'jsx', 'react'].includes(l)) k = j; if (['python', 'py'].includes(l)) k = p; h = h.replace(/(\/\/.*|\#.*)/g, '<span class="token comment">$1</span>').replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="token comment">$1</span>').replace(/(".*?"|'.*?'|`.*?`)/g, '<span class="token string">$1</span>'); if (k) { const re = new RegExp(`\\b(${k})\\b`, 'g'); h = h.replace(re, '<span class="token keyword">$1</span>'); } h = h.replace(/(\b(function|def)\s+)(\w+)/g, '$1<span class="token function">$3</span>').replace(/\b(\d+(\.\d+)?)\b/g, '<span class="token number">$1</span>'); if (['html', 'xml', 'jsx', 'react'].includes(l)) { h = h.replace(/(<\/?)([\w-]+)/g, '$1<span class="token tag">$2</span>').replace(/(\s+)([\w-]+)(?==)/g, '$1<span class="token attr-name">$2</span>'); } return h; }
         function scrollToBottom() { DOMElements.messageContainer.scrollTop = DOMElements.messageContainer.scrollHeight; }
-        
-        function logout() {
-            if (confirm("Are you sure you want to log out? This will clear your API key and all chat history.")) {
-                localStorage.removeItem(API_KEY_STORAGE_KEY);
-                localStorage.removeItem(CHAT_HISTORY_STORAGE_KEY);
-                location.reload();
-            }
-        }
-
-        function initializeMainApp(forceNew = false) {
-            loadChatsFromStorage();
-            renderHistoryList();
-            if (forceNew || allChats.length === 0) {
-                startNewChat();
-            } else {
-                loadChat(allChats[allChats.length - 1].id);
-            }
-        }
-        function init() {
-            // Mobile viewport height fix
-            const setVh = () => {
-                document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
-            };
-            window.addEventListener('resize', setVh);
-            setVh();
-
-            DOMElements.sendButton.addEventListener('click', handleSendMessage);
-            DOMElements.chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } });
-            DOMElements.addButton.addEventListener('click', () => DOMElements.fileInput.click());
-            DOMElements.fileInput.addEventListener('change', handleFileSelect); 
-            DOMElements.menuButton.addEventListener('click', () => toggleSidebar(true));
-            DOMElements.newChatButton.addEventListener('click', startNewChat);
-            DOMElements.closeSidebarButton.addEventListener('click', () => toggleSidebar(false));
-            DOMElements.sidebarOverlay.addEventListener('click', () => toggleSidebar(false));
-            DOMElements.logoutButton.addEventListener('click', logout);
-
-            const savedApiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
-            if (savedApiKey) {
-                apiKey = savedApiKey;
-                DOMElements.apiKeyModal.classList.add('hidden');
-                initializeMainApp();
-            } else {
-                DOMElements.apiKeyModal.classList.remove('hidden');
-            }
-            DOMElements.saveApiKeyButton.addEventListener('click', () => {
-                const key = DOMElements.apiKeyInput.value.trim();
-                if (!key) { alert('Please enter a valid API key.'); return; }
-                DOMElements.buttonText.classList.add('hidden');
-                DOMElements.buttonLoader.classList.remove('hidden');
-                DOMElements.saveApiKeyButton.disabled = true;
-                setTimeout(() => {
-                    apiKey = key;
-                    localStorage.setItem(API_KEY_STORAGE_KEY, key);
-                    DOMElements.apiKeyModal.classList.add('hidden');
-                    initializeMainApp();
-                    DOMElements.buttonText.classList.remove('hidden');
-                    DOMElements.buttonLoader.classList.add('hidden');
-                    DOMElements.saveApiKeyButton.disabled = false;
-                }, 100);
-            });
-        }
+        function logout() { if (confirm("Are you sure you want to log out? This will clear your API key and all chat history.")) { localStorage.removeItem(API_KEY_STORAGE_KEY); localStorage.removeItem(CHAT_HISTORY_STORAGE_KEY); location.reload(); } }
+        function initializeMainApp(forceNew = false) { loadChatsFromStorage(); renderHistoryList(); if (forceNew || allChats.length === 0) { startNewChat(); } else { loadChat(allChats[allChats.length - 1].id); } }
+        function init() { const setVh = () => { document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`); }; window.addEventListener('resize', setVh); setVh(); DOMElements.sendButton.addEventListener('click', handleSendMessage); DOMElements.chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }); DOMElements.addButton.addEventListener('click', () => DOMElements.fileInput.click()); DOMElements.fileInput.addEventListener('change', handleFileSelect); DOMElements.menuButton.addEventListener('click', () => toggleSidebar(true)); DOMElements.newChatButton.addEventListener('click', startNewChat); DOMElements.closeSidebarButton.addEventListener('click', () => toggleSidebar(false)); DOMElements.sidebarOverlay.addEventListener('click', () => toggleSidebar(false)); DOMElements.logoutButton.addEventListener('click', logout); const savedApiKey = localStorage.getItem(API_KEY_STORAGE_KEY); if (savedApiKey) { apiKey = savedApiKey; DOMElements.apiKeyModal.classList.add('hidden'); initializeMainApp(); } else { DOMElements.apiKeyModal.classList.remove('hidden'); } DOMElements.saveApiKeyButton.addEventListener('click', () => { const key = DOMElements.apiKeyInput.value.trim(); if (!key) { alert('Please enter a valid API key.'); return; } DOMElements.buttonText.classList.add('hidden'); DOMElements.buttonLoader.classList.remove('hidden'); DOMElements.saveApiKeyButton.disabled = true; setTimeout(() => { apiKey = key; localStorage.setItem(API_KEY_STORAGE_KEY, key); DOMElements.apiKeyModal.classList.add('hidden'); initializeMainApp(); DOMElements.buttonText.classList.remove('hidden'); DOMElements.buttonLoader.classList.add('hidden'); DOMElements.saveApiKeyButton.disabled = false; }, 100); }); }
         
         init();
+        
+        // --- Full HTML content for the body needs to be put back ---
+        document.getElementById('history-sidebar').innerHTML = `<div class="sidebar-header"><button id="new-chat-button">+ New Chat</button><button id="close-sidebar-button" aria-label="Close Menu"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f0f0f0"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></button></div><div id="history-list-container"></div><div class="sidebar-footer"><button id="logout-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 17v-3H9v-4h7V7l5 5-5 5M14 2a2 2 0 012 2v2h-2V4H5v16h9v-2h2v2a2 2 0 01-2 2H5a2 2 0 01-2-2V4a2 2 0 012-2h9z"></path></svg>Logout / Change Key</button></div>`;
+        document.getElementById('chat-window-wrapper').innerHTML = `<div class="chat-header"><button id="menu-button" aria-label="Open Menu"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f0f0f0"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg></button>HaldarAi 💡 Code Assistant</div><div id="message-container"></div><div class="chat-input-area"><div class="input-wrapper"><button id="add-button" aria-label="Add file">+</button><input type="text" id="chat-input" placeholder="e.g., Python function for bubble sort" autocomplete="off"><button id="send-button" aria-label="Send Message"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f0f0f0"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button></div></div><div class="chat-footer"><p>Made with ❤️ by HaldarAi 💡</p></div>`;
+        document.getElementById('api-key-modal').innerHTML = `<div class="modal-content"><h2>Enter Your API Key</h2><p>To use HaldarAi, you need a Google AI API key. The key is stored <strong>only in your browser</strong> and is never shared. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Get your API key from Google AI Studio.</a></p><input type="password" id="api-key-input" placeholder="Paste your API key here"><button id="save-api-key-button"><span class="button-text">Save and Start Chatting</span><span class="button-loader hidden"></span></button></div>`;
+
     </script>
 </body>
 </html>
