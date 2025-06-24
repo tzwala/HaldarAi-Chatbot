@@ -52,8 +52,8 @@
         #logout-button svg { width: 20px; height: 20px; }
         
         /* --- CHAT WINDOW --- */
-        #chat-window-wrapper { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: margin-left var(--transition-speed) cubic-bezier(0.25, 0.8, 0.25, 1), transform var(--transition-speed) cubic-bezier(0.25, 0.8, 0.25, 1); }
-        body.sidebar-open #chat-window-wrapper { transform: translateX(var(--sidebar-width)); }
+        #chat-window-wrapper { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: margin-left var(--transition-speed) cubic-bezier(0.25, 0.8, 0.25, 1); }
+        body.sidebar-open #chat-window-wrapper { margin-left: var(--sidebar-width); box-shadow: 0 0 20px rgba(0,0,0,0.5); }
         .chat-header { position: relative; padding: 15px; font-size: 1.2rem; font-weight: bold; text-align: center; background: rgba(255, 255, 255, 0.15); border-bottom: 1px solid rgba(255, 255, 255, 0.1); flex-shrink: 0; }
         #menu-button { position: absolute; top: 50%; left: 15px; transform: translateY(-50%); background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 40px; height: 40px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease-in-out; z-index: 5; }
         #menu-button:hover { background: var(--primary-color); border-color: var(--primary-color); transform: translateY(-50%) scale(1.1); }
@@ -73,14 +73,14 @@
         #add-button { background: none; border: none; color: #b0b0b0; width: 36px; height: 36px; border-radius: 50%; font-size: 1.8rem; font-weight: 300; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s ease-in-out; }
         #chat-input { flex-grow: 1; background: transparent; border: none; padding: 10px 10px; font-size: 1rem; color: #f0f0f0; outline: none; min-width: 0; }
         #send-button { background: none; border: none; padding: 0 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        #send-button svg { width: 24px; height: 24px; fill: #f0f0f0; transition: transform 0.2s, fill 0.2s; }
+        #send-button:hover svg { transform: scale(1.1); fill: var(--primary-color); }
         .chat-footer { padding: 10px; text-align: center; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); background: rgba(0, 0, 0, 0.1); flex-shrink: 0; }
         
-        /* --- RESPONSIVE BREAKPOINTS --- */
         @media (min-width: 768px) {
             #app-container { width: 90vw; height: 90vh; border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); overflow: hidden;}
             #chat-window-wrapper { border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.18); }
             #history-sidebar { position: absolute; box-shadow: none; }
-            body.sidebar-open #chat-window-wrapper { transform: translateX(0); margin-left: var(--sidebar-width); }
         }
         @media (min-width: 1024px) { #app-container { max-width: 800px; } }
     </style>
@@ -197,7 +197,6 @@
             DOMElements.menuButton.addEventListener('click', () => toggleSidebar());
             DOMElements.newChatButton.addEventListener('click', startNewChat);
             DOMElements.closeSidebarButton.addEventListener('click', () => toggleSidebar(false));
-            DOMElements.sidebarOverlay.addEventListener('click', () => toggleSidebar(false));
             DOMElements.logoutButton.addEventListener('click', logout);
 
             const savedApiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
