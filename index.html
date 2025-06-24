@@ -5,58 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HaldarAi 💡 Code Generator</title>
     <style>
-        :root {
-            --primary-color: #3d5af1;
-            --code-bg: rgba(40, 42, 54, 0.85);
-            --font-family: 'Segoe UI', 'Roboto', sans-serif;
-            --sidebar-width: 280px; 
-        }
+        :root { --primary-color: #3d5af1; --code-bg: rgba(40, 42, 54, 0.85); --font-family: 'Segoe UI', 'Roboto', sans-serif; --sidebar-width: 280px; }
         body { font-family: var(--font-family); margin: 0; background: #121225; color: #f0f0f0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-        
-        /* API Key Modal & Loading Button */
         #api-key-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px); }
         #api-key-modal.hidden { display: none; }
         .modal-content { background: #2a2a3e; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid rgba(255, 255, 255, 0.1); text-align: center; }
         .modal-content h2 { margin-top: 0; } .modal-content p { color: rgba(255, 255, 255, 0.7); line-height: 1.6; } .modal-content a { color: var(--primary-color); text-decoration: none; }
         #api-key-input { width: 100%; padding: 12px; margin: 15px 0 20px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(0, 0, 0, 0.2); color: #f0f0f0; font-size: 1rem; box-sizing: border-box; }
-        
-        /* --- NEW --- Save Button with Loading State */
-        #save-api-key-button {
-            width: 100%;
-            padding: 12px;
-            background: var(--primary-color);
-            border: none;
-            color: white;
-            font-size: 1.1rem;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 48px; /* Fixed height to prevent layout shift */
-        }
+        #save-api-key-button { width: 100%; padding: 12px; background: var(--primary-color); border: none; color: white; font-size: 1.1rem; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: center; height: 48px; }
         #save-api-key-button:hover { background: #3148c6; }
         #save-api-key-button.loading { background: #3148c6; cursor: wait; }
-        .button-loader {
-            width: 24px;
-            height: 24px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
+        .button-loader { width: 24px; height: 24px; border: 3px solid rgba(255, 255, 255, 0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .hidden { display: none; }
-
-        /* Background Shapes */
+        .hidden { display: none !important; }
         .background-shapes { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; }
         .shape { position: absolute; border-radius: 50%; filter: blur(80px); }
         .shape-1 { width: 80vmin; height: 80vmin; background: linear-gradient(45deg, #ff00ff, #00ffff); animation: moveShape 25s infinite alternate; }
         .shape-2 { width: 70vmin; height: 70vmin; background: linear-gradient(45deg, #f09819, #edde5d); animation: moveShape 30s infinite alternate-reverse; animation-delay: -5s; }
         @keyframes moveShape { from { transform: translate(10vw, -15vh) rotate(0deg); } to { transform: translate(80vw, 70vh) rotate(360deg); } }
-        
         #chat-window { position: relative; width: 100%; height: 100%; display: flex; overflow: hidden; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
         #sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9; opacity: 0; pointer-events: none; transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); }
         #history-sidebar { width: var(--sidebar-width); background: rgba(10, 10, 25, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.1); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 10; box-shadow: 3px 0 15px rgba(0,0,0,0.25); }
@@ -72,9 +38,10 @@
         #history-list { flex-grow: 1; overflow-y: auto; padding: 0 15px; list-style: none; margin: 0; }
         .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; margin-bottom: 8px; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
         .history-item:hover { background: rgba(255, 255, 255, 0.1); }
-        .history-item-title { flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .delete-chat-button { background: none; border: none; cursor: pointer; padding: 4px; border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0.6; transition: all 0.2s; margin-left: 10px; }
-        .delete-chat-button:hover { opacity: 1; background-color: rgba(255, 80, 80, 0.2); transform: scale(1.1); }
+        .history-item-title { flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 10px;}
+        .delete-chat-button { background: none; border: none; cursor: pointer; padding: 4px; border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0.6; transition: all 0.2s; }
+        .history-item:hover .delete-chat-button { opacity: 1; }
+        .delete-chat-button:hover { background-color: rgba(255, 80, 80, 0.2); transform: scale(1.1); }
         .delete-chat-button svg { width: 18px; height: 18px; fill: #f0f0f0; }
         #main-content { width: 100%; display: flex; flex-direction: column; flex-grow: 1; min-width: 0; }
         .chat-header { position: relative; padding: 15px; font-size: 1.2rem; font-weight: bold; text-align: center; background: rgba(255, 255, 255, 0.15); border-bottom: 1px solid rgba(255, 255, 255, 0.1); flex-shrink: 0; }
@@ -106,18 +73,7 @@
     <div class="background-shapes"><div class="shape shape-1"></div><div class="shape shape-2"></div></div>
     <div id="sidebar-overlay"></div>
     <input type="file" id="file-input" style="display: none;">
-    <div id="api-key-modal" class="hidden">
-        <div class="modal-content">
-            <h2>Enter Your API Key</h2>
-            <p>To use HaldarAi, you need a Google AI API key. The key is stored <strong>only in your browser</strong> and is never shared. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Get your API key from Google AI Studio.</a></p>
-            <input type="password" id="api-key-input" placeholder="Paste your API key here">
-            <!-- --- UPDATED --- Button with loading elements -->
-            <button id="save-api-key-button">
-                <span class="button-text">Save and Start Chatting</span>
-                <span class="button-loader hidden"></span>
-            </button>
-        </div>
-    </div>
+    <div id="api-key-modal" class="hidden"><div class="modal-content"><h2>Enter Your API Key</h2><p>To use HaldarAi, you need a Google AI API key. The key is stored <strong>only in your browser</strong> and is never shared. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Get your API key from Google AI Studio.</a></p><input type="password" id="api-key-input" placeholder="Paste your API key here"><button id="save-api-key-button"><span class="button-text">Save and Start Chatting</span><span class="button-loader hidden"></span></button></div></div>
 
     <div id="chat-window">
         <div id="history-sidebar"><div class="sidebar-header"><button id="new-chat-button">+ New Chat</button><button id="close-sidebar-button" aria-label="Close Menu"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#f0f0f0"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></button></div><ul id="history-list"></ul></div>
@@ -193,19 +149,14 @@
             DOMElements.saveApiKeyButton.addEventListener('click', () => {
                 const key = DOMElements.apiKeyInput.value.trim();
                 if (!key) { alert('Please enter a valid API key.'); return; }
-                
-                // Show loading state
                 DOMElements.buttonText.classList.add('hidden');
                 DOMElements.buttonLoader.classList.remove('hidden');
                 DOMElements.saveApiKeyButton.disabled = true;
-
-                // Use a short timeout to allow the UI to update to the loading state
                 setTimeout(() => {
                     apiKey = key;
                     localStorage.setItem(API_KEY_STORAGE_KEY, key);
                     DOMElements.apiKeyModal.classList.add('hidden');
                     initializeMainApp();
-                    // Reset button state for next time (though it's hidden now)
                     DOMElements.buttonText.classList.remove('hidden');
                     DOMElements.buttonLoader.classList.add('hidden');
                     DOMElements.saveApiKeyButton.disabled = false;
