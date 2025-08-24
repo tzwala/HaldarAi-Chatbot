@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>HaldarAI Studio</title>
+
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+    <!-- Syntax Highlighting: highlight.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    
+    <style>
+        :root {
+            --font-family: 'Manrope', sans-serif;
+            --border-radius: 40px;
+            --btn-border-radius: 15px;
+
+            /* Light Mode */
+            --bg-light: #E0E5EC;
+            --text-light: #333842;
+            --secondary-text-light: #5f6b83;
+            --accent-light: #a777e3;
+            --error-bg-light: #fdeded;
+            --error-text-light: #c53929;
+            --glass-bg-light: rgba(255, 255, 255, 0.45);
+            --shadow-light-1: #ffffff;
+            --shadow-light-2: #a3b1c6;
+            --user-msg-bg-light: #a777e3;
+            --bot-msg-bg-light: #e6e9f0;
+
+            /* Dark Mode */
+            --bg-dark: #353941;
+            --text-dark: #F0F2F5;
+            --secondary-text-dark: #9199B1;
+            --accent-dark: #a777e3;
+            --error-bg-dark: #4d3232;
+            --error-text-dark: #ff8a80;
+            --glass-bg-dark: rgba(50, 55, 70, 0.5);
+            --shadow-dark-1: #41454e;
+            --shadow-dark-2: #292d34;
+            --user-msg-bg-dark: #a777e3;
+            --bot-msg-bg-dark: #444952;
+        }
+
+        [data-theme="light"] {
+            --bg-color: var(--bg-light);
+            --primary-text-color: var(--text-light);
+            --secondary-text-color: var(--secondary-text-light);
+            --accent-color: var(--accent-light);
+            --error-bg: var(--error-bg-light);
+            --error-text: var(--error-text-light);
+            --glass-bg: var(--glass-bg-light);
+            --shadow-1: var(--shadow-light-1);
+            --shadow-2: var(--shadow-light-2);
+            --user-msg-bg: var(--user-msg-bg-light);
+            --bot-msg-bg: var(--bot-msg-bg-light);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: var(--bg-dark);
+            --primary-text-color: var(--text-dark);
+            --secondary-text-color: var(--secondary-text-dark);
+            --accent-color: var(--accent-dark);
+            --error-bg: var(--error-bg-dark);
+            --error-text: var(--error-text-dark);
+            --glass-bg: var(--glass-bg-dark);
+            --shadow-1: var(--shadow-dark-1);
+            --shadow-2: var(--shadow-dark-2);
+            --user-msg-bg: var(--user-msg-bg-dark);
+            --bot-msg-bg: var(--bot-msg-bg-dark);
+        }
+
+        /* --- Base & Layout --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: var(--font-family);
+            background-color: #353941;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        #app-container {
+            width: 100%; max-width: 420px; height: 95vh; max-height: 850px;
+            background-color: var(--bg-color);
+            border-radius: var(--border-radius);
+            box-shadow: 12px 12px 24px var(--shadow-2), -12px -12px 24px var(--shadow-1);
+            position: relative; overflow: hidden; display: flex; flex-direction: column;
+            transition: all 0.4s ease;
+        }
+        
+        /* --- History Panel --- */
+        #history-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1001; visibility: hidden; transition: visibility 0.3s; }
+        #history-modal.visible { visibility: visible; }
+        #history-overlay { width: 100%; height: 100%; background-color: rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.3s ease; }
+        #history-modal.visible #history-overlay { opacity: 1; }
+        #history-panel { position: absolute; top: 0; left: 0; width: 80%; height: 100%; padding: 25px; border-top-right-radius: 30px; border-bottom-right-radius: 30px; transform: translateX(-100%); transition: transform 0.3s ease-out; overflow-y: auto; }
+        #history-modal.visible #history-panel { transform: translateX(0); }
+        #history-panel h2 { margin-bottom: 20px; }
+        #history-list { list-style: none; }
+        .history-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; transition: background-color 0.2s; }
+        .history-item:hover { background-color: rgba(0,0,0,0.1); }
+        .history-item p { flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 10px; }
+        .delete-history-btn { background: none; border: none; color: var(--secondary-text-color); cursor: pointer; padding: 5px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .delete-history-btn:hover { color: var(--error-text); background-color: rgba(255,0,0,0.1); }
+
+        /* Other condensed styles */
+        .message-display { flex-grow: 1; padding: 10px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .message { max-width: 85%; padding: 12px 18px; border-radius: 20px; line-height: 1.6; word-wrap: break-word; font-size: 0.95rem; }
+        .user-message { background-color: var(--user-msg-bg); color: white; align-self: flex-end; border-bottom-right-radius: 5px; }
+        .bot-message { background-color: var(--bot-msg-bg); color: var(--primary-text-color); align-self: flex-start; border-bottom-left-radius: 5px; }
+        .blinking-cursor { display: inline-block; width: 8px; height: 1.2em; background-color: var(--primary-text-color); animation: blink 1s step-end infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+        .thinking-indicator { display: flex; align-items: center; justify-content: center; padding: 8px 0; }
+        .thinking-indicator span { width: 6px; height: 6px; margin: 0 2px; background-color: var(--secondary-text-color); border-radius: 50%; display: inline-block; animation: bounce 1.4s infinite ease-in-out both; }
+        .thinking-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .thinking-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
+        .error-message { align-self: stretch; max-width: 100%; background-color: var(--error-bg); color: var(--error-text); display: flex; align-items: flex-start; gap: 10px; }
+        .error-message .material-symbols-outlined { font-size: 20px; margin-top: 2px; }
+        .error-message p { margin: 0; }
+        .error-message strong { display: block; margin-bottom: 4px; }
+        .bot-message pre { position: relative; background-color: #282c34; border-radius: 8px; padding: 1.25rem 1rem 1rem; margin: 0; white-space: pre-wrap; word-wrap: break-word; font-size: 0.9em; }
+        .bot-message pre::before { content: attr(data-lang); position: absolute; top: 0; left: 0; padding: 2px 8px; margin: 5px; font-size: 0.75em; color: #abb2bf; background-color: rgba(0, 0, 0, 0.2); border-radius: 4px; text-transform: uppercase; }
+        .bot-message pre code { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; }
+        .input-area-container { padding: 15px 20px 20px 20px; flex-shrink: 0; }
+        #message-form { display: flex; align-items: flex-end; gap: 10px; }
+        #user-input { flex-grow: 1; border: none; padding: 14px 20px; font-size: 1rem; color: var(--primary-text-color); outline: none; font-family: var(--font-family); resize: none; line-height: 1.5; max-height: 150px; overflow-y: auto; transition: height 0.2s ease; }
+        #send-button { width: 50px; height: 50px; border-radius: 50%; flex-shrink: 0; }
+        #send-button svg { width: 24px; height: 24px; fill: var(--secondary-text-color); transition: fill 0.2s ease; }
+        #send-button:hover svg { fill: var(--accent-color); }
+        #send-button:disabled, .neumorphic-btn:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: inset 2px 2px 4px var(--shadow-2), inset -2px -2px 4px var(--shadow-1); }
+        #stop-button { display: none; margin: 10px auto 0; padding: 8px 16px; border-radius: 18px; }
+        #stop-button .material-symbols-outlined { font-size: 18px; vertical-align: text-bottom; margin-right: 5px; }
+        #settings-open-button { position: absolute; bottom: 85px; right: 15px; width: 48px; height: 48px; border-radius: 50%; z-index: 999; }
+        .neumorphic-btn { border: none; outline: none; cursor: pointer; border-radius: var(--btn-border-radius); background: var(--bg-color); color: var(--secondary-text-color); box-shadow: 6px 6px 12px var(--shadow-2), -6px -6px 12px var(--shadow-1); padding: 12px; display: flex; justify-content: center; align-items: center; transition: all 0.2s ease-in-out; }
+        .neumorphic-btn:hover:not(:disabled) { color: var(--accent-color); }
+        .neumorphic-btn:active:not(:disabled), .neumorphic-btn.active { box-shadow: inset 4px 4px 8px var(--shadow-2), inset -4px -4px 8px var(--shadow-1); transform: translateY(1px); }
+        .neumorphic-inset { border-radius: var(--btn-border-radius); background-color: var(--bg-color); box-shadow: inset 5px 5px 10px var(--shadow-2), inset -5px -5px 10px var(--shadow-1); }
+        .glass-effect { background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 25px 25px 15px 25px; flex-shrink: 0; }
+        .profile-info h1 { font-size: 1.5rem; font-weight: 800; }
+        .profile-info p { font-size: 0.9rem; color: var(--secondary-text-color); }
+        .top-bar-buttons { display: flex; gap: 10px; }
+
+        /* Modal Styles */
+        .modal-base { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-panel { width: 90%; max-width: 380px; padding: 25px; border-radius: 30px; color: var(--primary-text-color); }
+        .modal-panel h2 { text-align: center; margin-bottom: 25px; }
+        .config-group { margin-bottom: 20px; }
+        .config-group label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; color: var(--secondary-text-color); }
+        .label-with-value { display: flex; justify-content: space-between; align-items: center; }
+        .modal-panel select, .modal-panel input, .modal-panel textarea { width: 100%; padding: 10px 15px; border: none; outline: none; font-family: inherit; color: var(--primary-text-color); }
+        .modal-panel textarea { resize: vertical; height: 120px; }
+        .modal-panel input[type="range"] { padding: 0; box-shadow: none; }
+        .modal-close-button { position: absolute; top: 15px; right: 15px; width: 36px; height: 36px; border-radius: 50%; }
+
+        /* Code Block Enhancements */
+        .bot-message .code-block-wrapper { position: relative; margin: 1em 0; }
+        .bot-message .code-block-buttons { position: absolute; top: 8px; right: 8px; display: flex; gap: 8px; opacity: 0; transition: opacity 0.2s ease-in-out; }
+        .bot-message .code-block-wrapper:hover .code-block-buttons { opacity: 1; }
+        .bot-message .code-action-btn { background-color: rgba(70, 75, 85, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); color: #abb2bf; padding: 6px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 0; }
+        .bot-message .code-action-btn:hover { background-color: rgba(85, 90, 100, 0.8); color: #ffffff; }
+        .bot-message .code-action-btn .material-symbols-outlined { font-size: 16px; }
+
+        /* Loading Overlay */
+        #loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); color: white; z-index: 1002; display: none; justify-content: center; align-items: center; flex-direction: column; gap: 15px; border-radius: var(--border-radius); font-size: 1rem; }
+    </style>
+</head>
+<body data-theme="dark">
+    <div id="app-container">
+        <div id="loading-overlay">
+            <div class="thinking-indicator"><span></span><span></span><span></span></div>
+            <p id="loading-text">Processing...</p>
+        </div>
+
+        <header class="top-bar">
+            <div class="profile-info"><h1>HaldarAi 💡</h1><p>Studio Mode</p></div>
+            <div class="top-bar-buttons">
+                <button id="translate-button" class="neumorphic-btn" aria-label="Translate Chat"><span class="material-symbols-outlined">translate</span></button>
+                <button id="history-button" class="neumorphic-btn" aria-label="Open History"><span class="material-symbols-outlined">history</span></button>
+            </div>
+        </header>
+
+        <main id="message-display" class="message-display"></main>
+
+        <button id="settings-open-button" class="neumorphic-btn" aria-label="Open Settings"><span class="material-symbols-outlined">settings</span></button>
+        
+        <div class="input-area-container">
+            <button id="stop-button" class="neumorphic-btn"><span class="material-symbols-outlined">stop_circle</span>Stop</button>
+            <form id="message-form">
+                <textarea id="user-input" class="neumorphic-inset" placeholder="Ask Gemini..." rows="1"></textarea>
+                <button type="submit" id="send-button" class="neumorphic-btn" aria-label="Send Message">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-base glass-effect">
+        <div id="settings-panel" class="modal-panel neumorphic-inset">
+            <button id="settings-close-button" class="modal-close-button neumorphic-btn" aria-label="Close Settings"><span class="material-symbols-outlined">close</span></button>
+            <h2>Configuration</h2>
+            <div class="config-group"><label for="model-select">Model</label><select id="model-select" class="neumorphic-inset"><option value="gemini-1.5-flash-latest">Gemini 1.5 Flash</option><option value="gemini-1.5-pro-latest">Gemini 1.5 Pro</option></select></div>
+            <div class="config-group"><label for="system-instruction">System Instruction</label><textarea id="system-instruction" class="neumorphic-inset" placeholder="You are a helpful assistant."></textarea></div>
+            <div class="config-group"><label for="temperature-slider" class="label-with-value"><span>Temperature</span><span id="temperature-value">0.9</span></label><input type="range" id="temperature-slider" min="0" max="1" step="0.1" value="0.9"></div>
+            <div class="config-group"><button id="theme-toggle-button" class="neumorphic-btn" style="width:100%;">Toggle Theme</button></div>
+            <div class="config-group"><button id="new-chat-button" class="neumorphic-btn" style="width: 100%; color: var(--accent-color);">Start New Chat</button></div>
+        </div>
+    </div>
+    
+    <!-- Language Modal -->
+    <div id="language-modal" class="modal-base glass-effect">
+        <div id="language-panel" class="modal-panel neumorphic-inset">
+            <button id="language-close-button" class="modal-close-button neumorphic-btn" aria-label="Close Translate"><span class="material-symbols-outlined">close</span></button>
+            <h2>Translate Chat</h2>
+            <div class="config-group">
+                <label for="language-select">Select a Language</label>
+                <select id="language-select" class="neumorphic-inset"></select>
+            </div>
+            <div class="config-group">
+                <button id="language-confirm-button" class="neumorphic-btn" style="width: 100%; color: var(--accent-color);">Translate</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="history-modal">
+        <div id="history-overlay"></div>
+        <div id="history-panel" class="neumorphic-inset glass-effect">
+            <h2>History</h2>
+            <ul id="history-list"></ul>
+        </div>
+    </div>
+
+    <script type="module">
+        import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
+
+        // DOM References
+        const dom = {
+            loadingOverlay: document.getElementById('loading-overlay'),
+            loadingText: document.getElementById('loading-text'),
+            messageDisplay: document.getElementById('message-display'),
+            messageForm: document.getElementById('message-form'),
+            userInput: document.getElementById('user-input'),
+            sendButton: document.getElementById('send-button'),
+            stopButton: document.getElementById('stop-button'),
+            settingsModal: document.getElementById('settings-modal'),
+            settingsOpenButton: document.getElementById('settings-open-button'),
+            settingsCloseButton: document.getElementById('settings-close-button'),
+            modelSelect: document.getElementById('model-select'),
+            systemInstructionInput: document.getElementById('system-instruction'),
+            tempSlider: document.getElementById('temperature-slider'),
+            tempValue: document.getElementById('temperature-value'),
+            newChatButton: document.getElementById('new-chat-button'),
+            themeToggleButton: document.getElementById('theme-toggle-button'),
+            historyButton: document.getElementById('history-button'),
+            historyModal: document.getElementById('history-modal'),
+            historyOverlay: document.getElementById('history-overlay'),
+            historyList: document.getElementById('history-list'),
+            translateButton: document.getElementById('translate-button'),
+            languageModal: document.getElementById('language-modal'),
+            languageSelect: document.getElementById('language-select'),
+            languageConfirmButton: document.getElementById('language-confirm-button'),
+            languageCloseButton: document.getElementById('language-close-button'),
+        };
+        
+        // State Management
+        let geminiApiKey = "";
+        let controller;
+        let allConversations = [];
+        let currentConversationId = null;
+        let isTranslatedView = false;
+        
+        // Storage Keys
+        const STORAGE_KEYS = { API_KEY: 'geminiApiKey', CONVERSATIONS: 'geminiAllConversations', CURRENT_CONVO_ID: 'geminiCurrentConvoId', THEME: 'geminiTheme' };
+
+        // Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            populateLanguageSelector();
+            setupApiKey();
+            loadConversationsFromStorage();
+            setupEventListeners();
+            setupTheme();
+            renderCurrentConversation();
+            renderHistoryPanel();
+        });
+        
+        async function handleSendMessage(e) {
+            if (e) e.preventDefault();
+            if(isTranslatedView) { isTranslatedView = false; updateTranslateButton(); }
+            const prompt = dom.userInput.value.trim();
+            if (!prompt || dom.sendButton.disabled) return;
+            
+            dom.userInput.value = ''; dom.userInput.style.height = 'auto';
+
+            const currentConvo = getCurrentConversation();
+            currentConvo.conversation.push({ role: 'user', parts: [{ text: prompt }] });
+            
+            if (currentConvo.title.startsWith('New Chat')) {
+                 currentConvo.title = prompt.substring(0, 50);
+                 renderHistoryPanel();
+            }
+
+            addMessageToUI('user', prompt);
+            toggleForm(true);
+
+            const botMessageElement = addMessageToUI('bot', `<div class="thinking-indicator"><span></span><span></span><span></span></div>`);
+            let fullResponseText = "";
+
+            try {
+                controller = new AbortController();
+                const model = dom.modelSelect.value;
+                const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${geminiApiKey}`;
+                const generationConfig = { temperature: parseFloat(dom.tempSlider.value) };
+                const systemInstruction = dom.systemInstructionInput.value.trim() ? { role: "system", parts: [{ text: dom.systemInstructionInput.value.trim() }] } : null;
+                const contents = systemInstruction ? [systemInstruction, ...currentConvo.conversation] : [...currentConvo.conversation];
+
+                const response = await fetch(API_URL, { method: 'POST', signal: controller.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents, generationConfig }) });
+                
+                // UPDATED: Better Error Handling
+                if (!response.ok) {
+                    if (response.status === 429) {
+                        throw new Error("You have exceeded the API rate limit (Too Many Requests). Please wait a minute before trying again.");
+                    }
+                    const errorJson = await response.json();
+                    throw new Error(errorJson.error?.message || `HTTP error! Status: ${response.status}`);
+                }
+                
+                fullResponseText = await processStreamRobust(response.body, botMessageElement);
+                botMessageElement.innerHTML = marked.parse(fullResponseText);
+                finalizeBotMessage(botMessageElement, fullResponseText, currentConvo);
+
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    const stoppedText = fullResponseText ? (fullResponseText + "\n\n*Generation stopped.*") : "*Generation stopped.*";
+                    botMessageElement.innerHTML = marked.parse(stoppedText);
+                    finalizeBotMessage(botMessageElement, stoppedText, currentConvo);
+                } else {
+                    console.error("Gemini API Error:", error);
+                    // UPDATED: Show specific error message
+                    transformToErrorUI(botMessageElement, "An Error Occurred", error.message);
+                }
+            } finally {
+                toggleForm(false);
+                saveConversationsToStorage();
+            }
+        }
+        
+        function finalizeBotMessage(element, text, conversation) {
+            highlightCodeInElement(element);
+            wrapCodeBlocks(element);
+            if (text && conversation) {
+                conversation.conversation.push({ role: 'model', parts: [{ text: text }] });
+            }
+        }
+
+        function startNewChat() {
+            isTranslatedView = false;
+            updateTranslateButton();
+            const newId = Date.now();
+            const newConversation = { id: newId, title: `New Chat - ${new Date().toLocaleString()}`, conversation: [{ role: 'model', parts: [{ text: "Hello! How can I help you today?" }] }] };
+            allConversations.unshift(newConversation);
+            currentConversationId = newId;
+            saveConversationsToStorage();
+            localStorage.setItem(STORAGE_KEYS.CURRENT_CONVO_ID, currentConversationId);
+            renderCurrentConversation();
+            renderHistoryPanel();
+            if(dom.settingsModal.style.display === 'flex') { dom.settingsModal.style.display = 'none'; }
+        }
+
+        function setupEventListeners() {
+            dom.messageForm.addEventListener('submit', handleSendMessage);
+            dom.stopButton.addEventListener('click', () => controller?.abort());
+            dom.newChatButton.addEventListener('click', startNewChat);
+            dom.settingsOpenButton.addEventListener('click', () => { dom.settingsModal.style.display = 'flex'; });
+            dom.settingsCloseButton.addEventListener('click', () => { dom.settingsModal.style.display = 'none'; });
+            dom.userInput.addEventListener('input', (e) => { e.target.style.height = 'auto'; e.target.style.height = `${e.target.scrollHeight}px`; });
+            dom.userInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(e); }});
+            dom.historyButton.addEventListener('click', () => dom.historyModal.classList.toggle('visible'));
+            dom.historyOverlay.addEventListener('click', () => dom.historyModal.classList.remove('visible'));
+            
+            // Translation Listeners
+            dom.translateButton.addEventListener('click', handleTranslateToggle);
+            dom.languageConfirmButton.addEventListener('click', () => {
+                const targetLanguage = dom.languageSelect.value;
+                dom.languageModal.style.display = 'none';
+                performTranslation(targetLanguage);
+            });
+            dom.languageCloseButton.addEventListener('click', () => { dom.languageModal.style.display = 'none'; });
+        }
+        
+        function renderHistoryPanel() {
+            dom.historyList.innerHTML = '';
+            if (allConversations.length === 0) {
+                dom.historyList.innerHTML = '<li><p>No past conversations.</p></li>';
+                return;
+            }
+            allConversations.forEach(convo => {
+                const item = document.createElement('li');
+                item.className = 'history-item';
+                item.dataset.id = convo.id;
+                item.innerHTML = `<p>${convo.title}</p><button class="delete-history-btn" data-id="${convo.id}" title="Delete chat"><span class="material-symbols-outlined">delete</span></button>`;
+                item.querySelector('p').addEventListener('click', () => handleLoadChat(convo.id));
+                item.querySelector('.delete-history-btn').addEventListener('click', (e) => { e.stopPropagation(); handleDeleteChat(convo.id); });
+                dom.historyList.appendChild(item);
+            });
+        }
+        
+        function handleLoadChat(id) {
+            currentConversationId = id;
+            isTranslatedView = false;
+            updateTranslateButton();
+            localStorage.setItem(STORAGE_KEYS.CURRENT_CONVO_ID, id);
+            renderCurrentConversation();
+            dom.historyModal.classList.remove('visible');
+        }
+
+        function handleDeleteChat(id) {
+            if (!confirm("Delete this chat forever?")) return;
+            allConversations = allConversations.filter(c => c.id != id);
+            
+            if (currentConversationId == id) {
+                currentConversationId = allConversations[0]?.id || null;
+                localStorage.setItem(STORAGE_KEYS.CURRENT_CONVO_ID, currentConversationId);
+                if (!currentConversationId) { startNewChat(); }
+                else { renderCurrentConversation(); }
+            }
+            saveConversationsToStorage();
+            renderHistoryPanel();
+        }
+
+        function loadConversationsFromStorage() {
+            const storedConvos = localStorage.getItem(STORAGE_KEYS.CONVERSATIONS);
+            allConversations = storedConvos ? JSON.parse(storedConvos) : [];
+            currentConversationId = localStorage.getItem(STORAGE_KEYS.CURRENT_CONVO_ID);
+            
+            if (!currentConversationId || !allConversations.find(c => c.id == currentConversationId)) {
+                currentConversationId = allConversations[0]?.id || null;
+            }
+            if (!currentConversationId) { startNewChat(); }
+        }
+        
+        function saveConversationsToStorage() { localStorage.setItem(STORAGE_KEYS.CONVERSATIONS, JSON.stringify(allConversations)); }
+        function getCurrentConversation() { return allConversations.find(c => c.id == currentConversationId); }
+
+        function renderCurrentConversation() {
+            dom.messageDisplay.innerHTML = '';
+            const currentConvo = getCurrentConversation();
+            if (currentConvo && currentConvo.conversation) {
+                currentConvo.conversation.forEach(turn => addMessageToUI(turn.role, turn.parts[0].text));
+            }
+            scrollToBottom();
+        }
+
+        function toggleForm(isLoading) {
+            const buttonsToDisable = [dom.sendButton, dom.historyButton, dom.settingsOpenButton, dom.newChatButton, dom.translateButton];
+            buttonsToDisable.forEach(btn => btn.disabled = isLoading);
+            dom.userInput.disabled = isLoading;
+            dom.stopButton.style.display = isLoading ? 'flex' : 'none';
+        }
+        
+        async function processStreamRobust(stream, element) { let reader = stream.getReader(); let decoder = new TextDecoder(); let fullText = ""; let isFirstChunk = true; while (true) { try { const { value, done } = await reader.read(); if (done) break; const chunk = decoder.decode(value, { stream: true }); const textParts = chunk.match(/"text"\s*:\s*"((?:\\.|[^"\\])*)"/g); if (textParts) { if (isFirstChunk) { element.innerHTML = ''; isFirstChunk = false; } for (const part of textParts) { try { const extractedText = JSON.parse(`{${part}}`).text.replace(/\\n/g, '\n').replace(/\\"/g, '"'); fullText += extractedText; } catch(e) { console.warn("JSON parsing failed for part:", part); } } } if (!isFirstChunk) { element.innerHTML = marked.parse(fullText + '<span class="blinking-cursor"></span>'); highlightCodeInElement(element); wrapCodeBlocks(element); scrollToBottom(); } } catch(err) { console.error("Error reading stream:", err); break; } } return fullText; }
+        function setupApiKey() { geminiApiKey = sessionStorage.getItem(STORAGE_KEYS.API_KEY) || prompt("Please enter your Gemini API Key:"); if (geminiApiKey) { sessionStorage.setItem(STORAGE_KEYS.API_KEY, geminiApiKey); } else { addMessageToUI('error', "<strong>API Key Missing</strong><p>No API Key was provided. Please refresh and enter your key.</p>"); toggleForm(true); dom.userInput.disabled = true; } }
+        
+        function addMessageToUI(role, text) {
+            const element = document.createElement('div');
+            if (role === 'error') {
+                element.className = 'message error-message';
+                element.innerHTML = text;
+            } else {
+                element.className = `message ${role}-message`;
+                if (text.includes('class="thinking-indicator"')) {
+                    element.innerHTML = text;
+                } else {
+                    element.innerHTML = marked.parse(text);
+                    if (role === 'bot' || role === 'model') {
+                        highlightCodeInElement(element);
+                        wrapCodeBlocks(element);
+                    }
+                }
+            }
+            dom.messageDisplay.appendChild(element);
+            scrollToBottom();
+            return element;
+        }
+
+        function highlightCodeInElement(element) { element.querySelectorAll('pre code').forEach((block) => { const language = block.className.match(/language-(\w+)/)?.[1] || ''; block.parentElement.setAttribute('data-lang', language || 'code'); try { hljs.highlightElement(block); } catch(e) { console.error("Highlight.js error:", e); } }); }
+        function transformToErrorUI(element, title, message) { element.className = 'message error-message'; element.innerHTML = `<span class="material-symbols-outlined">error_outline</span><div><strong>${title}</strong><p>${message}</p></div>`; scrollToBottom(); }
+        function scrollToBottom() { dom.messageDisplay.scrollTop = dom.messageDisplay.scrollHeight; }
+        function setupTheme() { let currentTheme = localStorage.getItem(STORAGE_KEYS.THEME) || 'dark'; document.body.setAttribute('data-theme', currentTheme); dom.themeToggleButton.addEventListener('click', () => { let newTheme = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light'; document.body.setAttribute('data-theme', newTheme); localStorage.setItem(STORAGE_KEYS.THEME, newTheme); }); }
+
+        // --- Translation Logic ---
+        function handleTranslateToggle() {
+            if (isTranslatedView) {
+                isTranslatedView = false;
+                renderCurrentConversation();
+                updateTranslateButton();
+            } else {
+                dom.languageModal.style.display = 'flex';
+            }
+        }
+
+        async function performTranslation(targetLanguage) {
+            if (!targetLanguage) return;
+            const currentConvo = getCurrentConversation();
+            if (!currentConvo || currentConvo.conversation.length <= 1) return;
+
+            dom.loadingText.textContent = `Translating to ${targetLanguage}...`;
+            dom.loadingOverlay.style.display = 'flex';
+            try {
+                const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`;
+                const system_prompt = `You are a translation assistant. The user will provide a conversation in a JSON array format. Translate the 'text' part of each object inside 'parts' into ${targetLanguage}. Do not translate the 'role' field. Your entire response must be only the raw JSON array, starting with '[' and ending with ']'. Do not add any extra commentary, introductions, or markdown formatting.`;
+                const user_prompt = JSON.stringify(currentConvo.conversation);
+                const contents = [{ role: "user", parts: [{ text: system_prompt + "\n\n" + user_prompt }] }];
+
+                const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents }) });
+                
+                // UPDATED: Better Error Handling
+                if (!response.ok) {
+                    if (response.status === 429) {
+                        throw new Error("You have exceeded the API rate limit (Too Many Requests). Please wait a minute before trying again.");
+                    }
+                    const errorJson = await response.json();
+                    throw new Error(errorJson.error?.message || `HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const rawResponseText = data.candidates[0].content.parts[0].text;
+                
+                // ROBUST PARSING: Find the JSON array within the AI's response
+                const jsonMatch = rawResponseText.match(/(\[.*\])/s);
+                if (!jsonMatch || jsonMatch.length < 2) {
+                    throw new Error("AI response did not contain a valid JSON array.");
+                }
+                const jsonString = jsonMatch[1];
+                const translatedConvo = JSON.parse(jsonString);
+
+                dom.messageDisplay.innerHTML = '';
+                translatedConvo.forEach(turn => addMessageToUI(turn.role, turn.parts[0].text));
+                isTranslatedView = true;
+                updateTranslateButton();
+            } catch (error) {
+                console.error("Translation Error:", error);
+                alert(`Translation failed. ${error.message}`);
+            } finally {
+                dom.loadingOverlay.style.display = 'none';
+            }
+        }
+        
+        function updateTranslateButton() {
+            const icon = dom.translateButton.querySelector('.material-symbols-outlined');
+            if (isTranslatedView) {
+                icon.textContent = 'undo';
+                dom.translateButton.setAttribute('aria-label', 'Show Original');
+            } else {
+                icon.textContent = 'translate';
+                dom.translateButton.setAttribute('aria-label', 'Translate Chat');
+            }
+        }
+
+        function populateLanguageSelector() {
+            const languages = [
+                { group: "Indian Languages", list: [ "Assamese", "Bengali", "Bodo", "Dogri", "Gujarati", "Hindi", "Kannada", "Kashmiri", "Konkani", "Maithili", "Malayalam", "Manipuri", "Marathi", "Nepali", "Odia", "Punjabi", "Sanskrit", "Santali", "Sindhi", "Tamil", "Telugu", "Urdu" ]},
+                { group: "Other Major Languages", list: [ "Arabic", "Chinese (Simplified)", "English", "French", "German", "Indonesian", "Italian", "Japanese", "Korean", "Portuguese", "Russian", "Spanish", "Turkish", "Vietnamese" ]}
+            ];
+
+            languages.forEach(langGroup => {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = langGroup.group;
+                langGroup.list.forEach(lang => {
+                    const option = document.createElement('option');
+                    option.value = lang;
+                    option.textContent = lang;
+                    optgroup.appendChild(option);
+                });
+                dom.languageSelect.appendChild(optgroup);
+            });
+        }
+        
+        // --- Code Block Enhancements ---
+        function wrapCodeBlocks(element) {
+            element.querySelectorAll('pre:not(.wrapped)').forEach(preElement => {
+                preElement.classList.add('wrapped');
+                const wrapper = document.createElement('div');
+                wrapper.className = 'code-block-wrapper';
+                preElement.parentNode.insertBefore(wrapper, preElement);
+                wrapper.appendChild(preElement);
+
+                const buttons = document.createElement('div');
+                buttons.className = 'code-block-buttons';
+
+                const copyButton = document.createElement('button');
+                copyButton.className = 'code-action-btn';
+                copyButton.title = 'Copy code';
+                copyButton.innerHTML = '<span class="material-symbols-outlined">content_copy</span>';
+                copyButton.addEventListener('click', handleCopyCode);
+
+                const downloadButton = document.createElement('button');
+                downloadButton.className = 'code-action-btn';
+                downloadButton.title = 'Download code';
+                downloadButton.innerHTML = '<span class="material-symbols-outlined">download</span>';
+                downloadButton.addEventListener('click', handleDownloadCode);
+                
+                buttons.appendChild(copyButton);
+                buttons.appendChild(downloadButton);
+                wrapper.appendChild(buttons);
+            });
+        }
+
+        function handleCopyCode(event) {
+            const button = event.currentTarget;
+            const code = button.closest('.code-block-wrapper').querySelector('pre code');
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(code.innerText).then(() => {
+                    button.innerHTML = '<span class="material-symbols-outlined">done</span>';
+                    setTimeout(() => { button.innerHTML = '<span class="material-symbols-outlined">content_copy</span>'; }, 2000);
+                }).catch(err => { console.error('Failed to copy: ', err); alert('Failed to copy code.'); });
+            }
+        }
+        
+        const langExtensions = { javascript: 'js', python: 'py', java: 'java', c: 'c', cpp: 'cpp', csharp: 'cs', go: 'go', html: 'html', css: 'css', scss: 'scss', sql: 'sql', ruby: 'rb', php: 'php', swift: 'swift', kotlin: 'kt', rust: 'rs', typescript: 'ts', shell: 'sh', bash: 'sh', json: 'json', yaml: 'yaml', markdown: 'md', xml: 'xml' };
+
+        function handleDownloadCode(event) {
+            const pre = event.currentTarget.closest('.code-block-wrapper').querySelector('pre');
+            const code = pre.querySelector('code').innerText;
+            const lang = pre.getAttribute('data-lang') || 'txt';
+            const extension = langExtensions[lang] || lang || 'txt';
+            const filename = `code-snippet-${Date.now()}.${extension}`;
+            
+            const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
